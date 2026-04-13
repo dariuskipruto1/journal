@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv(
     "DJANGO_SECRET_KEY", "django-insecure-journal-desk-production-key-2026"
 )
 
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in {"1", "true", "yes", "on"}
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in {"1", "true", "yes", "on"}
 
 # === APP BRANDING CONFIGURATION ===
 APP_NAME = "Journal Desk"
@@ -93,12 +93,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "journal_project.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+# Database configuration - use PostgreSQL in production, SQLite in development
+import dj_database_url
+
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
