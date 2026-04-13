@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Categories - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Categories</h1>
+    <p>Manage your entry categories.</p>
+    <ul>
+        {% for category in categories %}
+            <li>{{ category }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

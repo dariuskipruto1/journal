@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Reminders & Notifications - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1><i class="fa-solid fa-bell"></i> Reminders & Notifications</h1>
+    <p>Stay on top of your important tasks and deadlines.</p>
+    
+    <section class="reminders-grid">
+        {% if entries_with_tasks %}
+            {% for entry in entries_with_tasks %}
+            <div class="reminder-card {% if entry.task_completed %}completed{% elif entry.is_overdue %}overdue{% else %}pending{% endif %}">
+                <div class="reminder-header">
+                    <h3>{{ entry.task }}</h3>
+                    <span class="priority-badge priority-{{ entry.task_priority }}">{{ entry.task_priority }}</span>
+                </div>
+                <p>{{ entry.title }}</p>
+                <div class="reminder-footer">
+                    <small><i class="fa-solid fa-calendar"></i> {{ entry.task_due_at|date:"M d, Y H:i" }}</small>
+                    <span class="status-badge">
+                        {% if entry.task_completed %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-clock"></i>{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-inbox"></i>
+            <p>No reminders set. Create a task with a due date to get reminded!</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,337 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Profile - Journal Desk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <!-- Smart Navigation Header -->
+        <header class="smart-nav">
+            <div class="nav-brand">
+                <a href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-book-open nav-icon"></i>
+                    <span class="nav-title">Journal Desk</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="{% url 'dashboard' %}" class="nav-item">
+                    <i class="fa-solid fa-gauge nav-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'entry_list' %}" class="nav-item">
+                    <i class="fa-solid fa-file-alt nav-icon"></i>
+                    <span>Entries</span>
+                </a>
+                <a href="{% url 'task_list' %}" class="nav-item">
+                    <i class="fa-solid fa-tasks nav-icon"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'analytics' %}" class="nav-item">
+                    <i class="fa-solid fa-chart-line nav-icon"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="{% url 'entry_search' %}" class="nav-item">
+                    <i class="fa-solid fa-search nav-icon"></i>
+                    <span>Search</span>
+                </a>
+            </nav>
+
+            <div class="nav-actions">
+                <div class="user-menu">
+                    <button class="user-menu-btn">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span>{{ user.username }}</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-menu-dropdown">
+                        <a href="{% url 'profile' %}">
+                            <i class="fa-solid fa-user"></i> Profile
+                        </a>
+                        <a href="{% url 'help_page' %}">
+                            <i class="fa-solid fa-question-circle"></i> Help
+                        </a>
+                        <hr>
+                        <form method="post" action="{% url 'logout' %}" class="inline-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">
+                                <i class="fa-solid fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="header-content">
+                <h1><i class="fa-solid fa-user"></i> Profile Settings</h1>
+                <p>Manage your account and preferences</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <section class="messages" aria-live="polite">
+                {% for message in messages %}
+                    <p class="message {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <!-- Profile Overview -->
+        <section class="profile-overview">
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-user-circle"></i>
+                </div>
+                <div class="profile-info">
+                    <h2>{{ user.username }}</h2>
+                    <p>Member since {{ user.date_joined|date:"F Y" }}</p>
+                    <div class="profile-stats">
+                        <span><strong>{{ profile_stats.total_entries }}</strong> entries</span>
+                        <span><strong>{{ profile_stats.total_tasks }}</strong> tasks</span>
+                        <span><strong>{{ profile_stats.current_streak }}</strong> day streak</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Settings -->
+        <section class="profile-settings">
+            <div class="settings-grid">
+                <!-- Account Information -->
+                <div class="settings-card">
+                    <div class="settings-header">
+                        <h3><i class="fa-solid fa-user-cog"></i> Account Information</h3>
+                    </div>
+                    <div class="settings-content">
+                        <form method="post" action="{% url 'profile' %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" value="{{ user.username }}" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" value="{{ user.email|default:'' }}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="first_name">First Name</label>
+                                <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="last_name">Last Name</label>
+                                <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}">
+                            </div>
+
+                            <button type="submit" name="update_profile" class="btn btn-primary">
+                                <i class="fa-solid fa-save"></i> Update Profile
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Password Change -->
+                <div class="settings-card">
+                    <div class="settings-header">
+                        <h3><i class="fa-solid fa-lock"></i> Change Password</h3>
+                    </div>
+                    <div class="settings-content">
+                        <form method="post" action="{% url 'profile' %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="old_password">Current Password</label>
+                                <input type="password" id="old_password" name="old_password" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="new_password1">New Password</label>
+                                <input type="password" id="new_password1" name="new_password1" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="new_password2">Confirm New Password</label>
+                                <input type="password" id="new_password2" name="new_password2" required>
+                            </div>
+
+                            <button type="submit" name="change_password" class="btn btn-primary">
+                                <i class="fa-solid fa-key"></i> Change Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="settings-card">
+                    <div class="settings-header">
+                        <h3><i class="fa-solid fa-sliders-h"></i> Preferences</h3>
+                    </div>
+                    <div class="settings-content">
+                        <form method="post" action="{% url 'profile' %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="email_alerts" {% if user_profile.email_alerts %}checked{% endif %}>
+                                    <span class="checkmark"></span>
+                                    Email alerts for task reminders
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="ai_assistant" {% if user_profile.ai_assistant %}checked{% endif %}>
+                                    <span class="checkmark"></span>
+                                    Enable AI assistant features
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="weather_widget" {% if user_profile.weather_widget %}checked{% endif %}>
+                                    <span class="checkmark"></span>
+                                    Show weather information
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="timezone">Timezone</label>
+                                <select id="timezone" name="timezone">
+                                    <option value="UTC" {% if user_profile.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                    <option value="America/New_York" {% if user_profile.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time</option>
+                                    <option value="America/Chicago" {% if user_profile.timezone == 'America/Chicago' %}selected{% endif %}>Central Time</option>
+                                    <option value="America/Denver" {% if user_profile.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time</option>
+                                    <option value="America/Los_Angeles" {% if user_profile.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time</option>
+                                    <option value="Europe/London" {% if user_profile.timezone == 'Europe/London' %}selected{% endif %}>London</option>
+                                    <option value="Europe/Paris" {% if user_profile.timezone == 'Europe/Paris' %}selected{% endif %}>Paris</option>
+                                    <option value="Asia/Tokyo" {% if user_profile.timezone == 'Asia/Tokyo' %}selected{% endif %}>Tokyo</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" name="update_preferences" class="btn btn-primary">
+                                <i class="fa-solid fa-save"></i> Save Preferences
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Data Management -->
+                <div class="settings-card danger">
+                    <div class="settings-header">
+                        <h3><i class="fa-solid fa-database"></i> Data Management</h3>
+                    </div>
+                    <div class="settings-content">
+                        <p class="warning-text">
+                            <i class="fa-solid fa-exclamation-triangle"></i>
+                            These actions cannot be undone. Please be careful.
+                        </p>
+
+                        <div class="data-actions">
+                            <button onclick="exportData()" class="btn btn-secondary">
+                                <i class="fa-solid fa-download"></i> Export All Data
+                            </button>
+
+                            <button onclick="confirmDelete()" class="btn btn-danger">
+                                <i class="fa-solid fa-trash"></i> Delete All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="recent-activity">
+            <h2><i class="fa-solid fa-history"></i> Recent Activity</h2>
+            <div class="activity-timeline">
+                {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fa-solid {{ activity.icon }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p>{{ activity.description }}</p>
+                            <span class="activity-time">{{ activity.timestamp|timesince }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-exclamation-triangle"></i> Confirm Deletion</h3>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete all your journal data? This action cannot be undone.</p>
+                <p>This will permanently delete:</p>
+                <ul>
+                    <li>All journal entries</li>
+                    <li>All tasks and reminders</li>
+                    <li>All analytics data</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                <form method="post" action="{% url 'profile' %}" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit" name="delete_data" class="btn btn-danger">
+                        <i class="fa-solid fa-trash"></i> Delete All Data
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function exportData() {
+            window.location.href = "{% url 'export_data' %}";
+        }
+
+        function confirmDelete() {
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Password strength indicator
+        document.getElementById('new_password1').addEventListener('input', function() {
+            const password = this.value;
+            const strength = calculatePasswordStrength(password);
+            // Could add visual indicator here
+        });
+
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            return strength;
+        }
+    </script>
+</body>
+</html>

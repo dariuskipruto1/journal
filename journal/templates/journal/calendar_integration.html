@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar Integration - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1><i class="fa-solid fa-calendar"></i> Calendar Integration</h1>
+    <p>Sync your journal entries with your personal calendar.</p>
+    
+    <div class="calendar-grid">
+        <div class="calendar-settings">
+            <h2>Calendar Services</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="service-cards">
+                    <div class="service-card {% if calendar_integration.provider == 'google' %}active{% endif %}">
+                        <i class="fab fa-google"></i>
+                        <h3>Google Calendar</h3>
+                        <p>Sync with your Google Calendar account</p>
+                        <button type="button" class="btn-service">Connect</button>
+                    </div>
+                    
+                    <div class="service-card {% if calendar_integration.provider == 'outlook' %}active{% endif %}">
+                        <i class="fab fa-windows"></i>
+                        <h3>Outlook Calendar</h3>
+                        <p>Sync with Microsoft Outlook</p>
+                        <button type="button" class="btn-service">Connect</button>
+                    </div>
+                    
+                    <div class="service-card {% if calendar_integration.provider == 'ical' %}active{% endif %}">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <h3>iCalendar</h3>
+                        <p>Export as iCalendar format</p>
+                        <button type="button" class="btn-service">Setup</button>
+                    </div>
+                </div>
+                
+                <div class="settings-form">
+                    <h3>Sync Settings</h3>
+                    <div class="form-group">
+                        <label for="sync_direction">Sync Direction:</label>
+                        <select id="sync_direction" name="sync_direction">
+                            <option value="one_way" {% if calendar_integration.sync_direction == 'one_way' %}selected{% endif %}>Journal → Calendar (One Way)</option>
+                            <option value="two_way" {% if calendar_integration.sync_direction == 'two_way' %}selected{% endif %}>Two Way Sync</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="is_enabled" {% if calendar_integration.is_enabled %}checked{% endif %}>
+                            Enable calendar sync
+                        </label>
+                    </div>
+                    
+                    <div class="info-box">
+                        <i class="fa-solid fa-info-circle"></i>
+                        <p>Your journal entries will appear as calendar events. Only entries with due dates will be synced.</p>
+                    </div>
+                    
+                    {% if calendar_integration.last_synced %}
+                    <div class="last-sync">
+                        <small><i class="fa-solid fa-check-circle"></i> Last synced: {{ calendar_integration.last_synced|date:"M d, Y H:i" }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-actions">
+                        <button type="submit" name="action" value="update_settings" class="btn btn-primary">Save Settings</button>
+                        <button type="submit" name="action" value="sync_now" class="btn btn-secondary">Sync Now</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="sync-status">
+            <h2>Sync Status</h2>
+            <div class="status-card">
+                <div class="status-indicator {% if calendar_integration.is_enabled %}active{% else %}inactive{% endif %}"></div>
+                <h4>Integration Status</h4>
+                <p>{% if calendar_integration.is_enabled %}Enabled and active{% else %}Disabled{% endif %}</p>
+            </div>
+            
+            <div class="status-info">
+                <h3>Sync Information</h3>
+                <ul>
+                    <li><strong>Provider:</strong> {{ calendar_integration.get_provider_display }}</li>
+                    <li><strong>Direction:</strong> {{ calendar_integration.get_sync_direction_display }}</li>
+                    <li><strong>Last Sync:</strong> {% if calendar_integration.last_synced %}{{ calendar_integration.last_synced|date:"M d, Y H:i" }}{% else %}Never{% endif %}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .calendar-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.calendar-settings, .sync-status {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #36454F;
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+h2 {
+    color: #57c1ff;
+    margin-top: 0;
+}
+
+.service-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .service-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+.service-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(87, 193, 255, 0.1);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.service-card:hover {
+    border-color: #57c1ff;
+    transform: translateY(-5px);
+}
+
+.service-card.active {
+    background: rgba(87, 193, 255, 0.2);
+    border-color: #57c1ff;
+}
+
+.service-card i {
+    font-size: 2rem;
+    color: #57c1ff;
+    margin-bottom: 0.5rem;
+}
+
+.service-card h3 {
+    margin: 0.5rem 0;
+    color: #f8fbff;
+}
+
+.service-card p {
+    font-size: 0.9rem;
+    color: #d5dce7;
+    margin: 0.5rem 0 1rem 0;
+}
+
+.btn-service {
+    background: #57c1ff;
+    color: #0a1830;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-service:hover {
+    background: #258dff;
+    transform: scale(1.05);
+}
+
+.settings-form {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #36454F;
+}
+
+.settings-form h3 {
+    color: #f8fbff;
+}
+
+.form-group {
+    margin: 1.5rem 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #d5dce7;
+    font-weight: 500;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(52, 73, 94, 0.5);
+    border: 1px solid #57c1ff;
+    border-radius: 4px;
+    color: #f8fbff;
+}
+
+.info-box {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(87, 193, 255, 0.1);
+    border-left: 4px solid #57c1ff;
+    border-radius: 4px;
+    margin: 1.5rem 0;
+}
+
+.info-box i {
+    color: #57c1ff;
+    flex-shrink: 0;
+}
+
+.info-box p {
+    margin: 0;
+    color: #d5dce7;
+    font-size: 0.95rem;
+}
+
+.last-sync {
+    padding: 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.last-sync small {
+    color: #10b981;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.form-actions button {
+    flex: 1;
+}
+
+/* Sync Status Section */
+.status-card {
+    background: rgba(87, 193, 255, 0.1);
+    border: 2px solid #57c1ff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.status-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #666;
+    margin: 0 auto 1rem;
+    animation: none;
+}
+
+.status-indicator.active {
+    background: #10b981;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+}
+
+.status-card h4 {
+    margin: 0 0 0.5rem 0;
+    color: #f8fbff;
+}
+
+.status-card p {
+    margin: 0;
+    color: #d5dce7;
+}
+
+.status-info {
+    background: rgba(52, 73, 94, 0.5);
+    border: 1px solid #36454F;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.status-info h3 {
+    margin: 0 0 1rem 0;
+    color: #57c1ff;
+}
+
+.status-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.status-info li {
+    padding: 0.5rem 0;
+    color: #d5dce7;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-info li:last-child {
+    border-bottom: none;
+}
+
+.status-info strong {
+    color: #57c1ff;
+}
+</style>
+{% endblock %}

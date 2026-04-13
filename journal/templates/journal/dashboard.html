@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Journal Desk{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <section class="welcome-hero">
+        <div class="hero-content">
+            <h1><i class="fa-solid fa-sun"></i> Good {{ time_greeting }}, {{ user.username }}!</h1>
+            <p class="hero-subtitle">Your journal, tasks, uploads, and insights in one place.</p>
+
+            <div class="live-info">
+                <div class="live-item">
+                    <i class="fa-solid fa-clock"></i>
+                    <span id="currentTime">Loading...</span>
+                </div>
+                <div class="live-item">
+                    <i class="fa-solid fa-cloud-sun"></i>
+                    <span id="currentWeather">Loading weather...</span>
+                </div>
+                <div class="live-item">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <span>{{ "now"|date:"l, F j, Y" }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-actions">
+            <a href="{% url 'entry_list' %}#add-entry" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> New Entry
+            </a>
+            <a href="{% url 'task_list' %}" class="btn btn-secondary">
+                <i class="fa-solid fa-tasks"></i> View Tasks
+            </a>
+        </div>
+    </section>
+
+    <section class="stats-overview">
+        <h2><i class="fa-solid fa-chart-bar"></i> Quick Stats</h2>
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-icon"><i class="fa-solid fa-file-alt"></i></div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ stats.total_entries }}</span>
+                    <span class="stat-label">Total Entries</span>
+                </div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon"><i class="fa-solid fa-calendar-day"></i></div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ stats.today_entries }}</span>
+                    <span class="stat-label">Today</span>
+                </div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ stats.starred_entries }}</span>
+                    <span class="stat-label">Starred</span>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon"><i class="fa-solid fa-tasks"></i></div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ stats.pending_tasks }}</span>
+                    <span class="stat-label">Pending Tasks</span>
+                </div>
+            </div>
+            {% if stats.overdue_tasks > 0 %}
+            <div class="stat-card danger">
+                <div class="stat-icon"><i class="fa-solid fa-exclamation-triangle"></i></div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ stats.overdue_tasks }}</span>
+                    <span class="stat-label">Overdue</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="assistant-panel">
+        <div class="dashboard-card ai-card collapsed" id="assistantCard">
+            <div class="card-header ai-card-header">
+                <h3><i class="fa-solid fa-robot"></i> AI Assistant</h3>
+                <div class="ai-actions">
+                    <a href="{% url 'document_upload' %}" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-file-upload"></i> Upload doc/video
+                    </a>
+                    <button id="toggleAIButton" class="btn btn-primary btn-sm" type="button" onclick="toggleAIWidget()">
+                        <i class="fa-solid fa-chevron-down"></i> Open assistant
+                    </button>
+                </div>
+            </div>
+            <div class="card-content ai-card-body">
+                <div class="card-copy">
+                    <p>Use the assistant for concise planning, document summarization, and productivity recommendations.</p>
+                </div>
+                <div class="ai-prompts">
+                    <button class="ai-prompt-btn" onclick="askAI('What should I focus on today?')">
+                        <i class="fa-solid fa-lightbulb"></i> What should I focus on?
+                    </button>
+                    <button class="ai-prompt-btn" onclick="askAI('Suggest a plan for my pending tasks')">
+                        <i class="fa-solid fa-list-check"></i> Plan my tasks
+                    </button>
+                    <button class="ai-prompt-btn" onclick="askAI('How can I organize today's journal entries?')">
+                        <i class="fa-solid fa-rocket"></i> Organize my day
+                    </button>
+                </div>
+                <div class="ai-input">
+                    <input type="text" id="aiQuestion" placeholder="Ask a concise question..." class="ai-input-field">
+                    <button onclick="askAI(document.getElementById('aiQuestion').value)" class="ai-submit-btn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div id="aiResponse" class="ai-response" style="display: none;"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="document-panel">
+        <div class="dashboard-card document-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-file-lines"></i> Document & Video Analysis</h3>
+                <a href="{% url 'document_upload' %}" class="card-link">Upload files</a>
+            </div>
+            <div class="card-content">
+                <p class="card-copy">Upload documents and videos for secure storage, automatic metadata extraction, and AI-assisted summaries.</p>
+                <div class="document-stats">
+                    <div>
+                        <strong>{{ document_count }}</strong>
+                        <span>Uploads stored</span>
+                    </div>
+                    {% if latest_documents %}
+                    <div>
+                        <strong>{{ latest_documents|length }}</strong>
+                        <span>Recent files</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if latest_documents %}
+                <div class="document-preview-list">
+                    {% for upload in latest_documents %}
+                    <div class="document-preview-item">
+                        <div class="document-icon">
+                            <i class="fa-solid fa-file"></i>
+                        </div>
+                        <div>
+                            <strong>{{ upload.title|default:upload.file_name }}</strong>
+                            <p>{{ upload.analysis|truncatewords:20 }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <p>No uploads yet. Add a document or video to get analysis and storage benefits.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="recent-activity">
+        <h2><i class="fa-solid fa-history"></i> Recent Activity</h2>
+        <div class="activity-list">
+            {% for entry in recent_entries %}
+            <div class="activity-item">
+                <div class="activity-icon">
+                    {% if entry.is_starred %}
+                    <i class="fa-solid fa-star" style="color: #fbbf24;"></i>
+                    {% else %}
+                    <i class="fa-solid fa-file-alt"></i>
+                    {% endif %}
+                </div>
+                <div class="activity-content">
+                    <h4><a href="{% url 'entry_detail' entry.pk %}">{{ entry.title }}</a></h4>
+                    <p>{{ entry.content|truncatechars:100 }}</p>
+                    <small>{{ entry.date_updated|timesince }} ago</small>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fa-solid fa-history"></i>
+                <p>No recent activity</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<script>
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || null;
+
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('currentTime').textContent = timeString;
+    }
+
+    async function updateWeather() {
+        try {
+            const response = await fetch('{% url "assistant_realtime" %}?location={{ weather_location_default|urlencode }}');
+            const data = await response.json();
+            document.getElementById('currentWeather').textContent = data.weather
+                ? `${data.weather} ${data.temperature_c}°C`
+                : 'Weather unavailable';
+        } catch (e) {
+            document.getElementById('currentWeather').textContent = 'Weather unavailable';
+        }
+    }
+
+    async function checkAIStatus() {
+        try {
+            const response = await fetch('{% url "chatbot_health" %}');
+            const data = await response.json();
+            const statusEl = document.getElementById('aiStatus');
+            if (statusEl) {
+                statusEl.innerHTML = data.status === 'healthy'
+                    ? '<i class="fa-solid fa-circle" style="color: #10b981;"></i> Online'
+                    : '<i class="fa-solid fa-circle" style="color: #ef4444;"></i> Offline';
+            }
+        } catch (e) {
+            const statusEl = document.getElementById('aiStatus');
+            if (statusEl) {
+                statusEl.innerHTML = '<i class="fa-solid fa-circle" style="color: #ef4444;"></i> Offline';
+            }
+        }
+    }
+
+    function toggleAIWidget() {
+        const card = document.getElementById('assistantCard');
+        card.classList.toggle('collapsed');
+        const button = document.getElementById('toggleAIButton');
+        if (card.classList.contains('collapsed')) {
+            button.innerHTML = '<i class="fa-solid fa-chevron-down"></i> Open assistant';
+        } else {
+            button.innerHTML = '<i class="fa-solid fa-chevron-up"></i> Close assistant';
+        }
+    }
+
+    function askAI(question) {
+        if (!question || !question.trim()) return;
+        const responseDiv = document.getElementById('aiResponse');
+        responseDiv.style.display = 'block';
+        responseDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+        fetch('{% url "ollama_chat" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({ prompt: question, history: [] })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.reply) {
+                responseDiv.innerHTML = `<div class="ai-reply">${data.reply}</div>`;
+            } else if (data.error) {
+                responseDiv.innerHTML = `<div class="ai-error">${data.error}</div>`;
+            }
+        })
+        .catch(() => {
+            responseDiv.innerHTML = '<div class="ai-error">Unable to reach the assistant.</div>';
+        });
+    }
+
+    updateTime();
+    updateWeather();
+    checkAIStatus();
+    setInterval(updateTime, 1000);
+    setInterval(updateWeather, 300000);
+    setInterval(checkAIStatus, 60000);
+</script>
+{% endblock %}

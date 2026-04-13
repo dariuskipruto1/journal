@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Documents & Videos - Journal Desk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <header class="smart-nav">
+            <div class="nav-brand">
+                <a href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-book-open nav-icon"></i>
+                    <span class="nav-title">Journal Desk</span>
+                </a>
+            </div>
+            <nav class="nav-menu">
+                <a href="{% url 'dashboard' %}" class="nav-item">
+                    <i class="fa-solid fa-gauge nav-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'entry_list' %}" class="nav-item">
+                    <i class="fa-solid fa-file-alt nav-icon"></i>
+                    <span>Entries</span>
+                </a>
+                <a href="{% url 'task_list' %}" class="nav-item">
+                    <i class="fa-solid fa-tasks nav-icon"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'analytics' %}" class="nav-item">
+                    <i class="fa-solid fa-chart-line nav-icon"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="{% url 'document_upload' %}" class="nav-item active">
+                    <i class="fa-solid fa-file-lines nav-icon"></i>
+                    <span>Uploads</span>
+                </a>
+            </nav>
+            <div class="nav-actions">
+                <div class="user-menu">
+                    <button class="user-menu-btn">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span>{{ user.username }}</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-menu-dropdown">
+                        <a href="{% url 'profile' %}">
+                            <i class="fa-solid fa-user"></i> Profile
+                        </a>
+                        <a href="{% url 'help_page' %}">
+                            <i class="fa-solid fa-question-circle"></i> Help
+                        </a>
+                        <hr>
+                        <form method="post" action="{% url 'logout' %}" class="inline-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">
+                                <i class="fa-solid fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="page-header">
+            <div class="header-content">
+                <h1><i class="fa-solid fa-file-circle-plus"></i> Documents & Videos</h1>
+                <p>Upload and review files with automatic storage and analysis.</p>
+            </div>
+            <div class="header-actions">
+                <span class="badge badge-primary">Supported formats: PDF, TXT, MD, CSV, MP4, MOV, AVI, MKV</span>
+            </div>
+        </section>
+
+        {% if messages %}
+            <section class="messages" aria-live="polite">
+                {% for message in messages %}
+                    <p class="message {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <section class="upload-section">
+            <div class="upload-grid">
+                <div class="upload-card">
+                    <h2>Upload file</h2>
+                    <form method="post" enctype="multipart/form-data" class="upload-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="id_title">Title</label>
+                            {{ form.title }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_file">Choose file</label>
+                            {{ form.file }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-upload"></i> Upload
+                        </button>
+                    </form>
+                </div>
+
+                <div class="upload-card">
+                    <h2>How it works</h2>
+                    <ul class="feature-list">
+                        <li><i class="fa-solid fa-check"></i> Securely store documents and videos</li>
+                        <li><i class="fa-solid fa-check"></i> Analyze text files for word count and summary</li>
+                        <li><i class="fa-solid fa-check"></i> Store video metadata for review</li>
+                        <li><i class="fa-solid fa-check"></i> Access uploads from the dashboard</li>
+                        <li><i class="fa-solid fa-check"></i> Use AI to interpret upload content</li>
+                        <li><i class="fa-solid fa-check"></i> Review file status and analysis history</li>
+                        <li><i class="fa-solid fa-check"></i> Add titles and notes to each upload</li>
+                        <li><i class="fa-solid fa-check"></i> Keep files organized by upload date</li>
+                        <li><i class="fa-solid fa-check"></i> Revisit summaries anytime</li>
+                        <li><i class="fa-solid fa-check"></i> Store PDFs and supported media formats</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="upload-list-section">
+            <h2>Recent uploads</h2>
+            {% if uploads %}
+                <div class="upload-table">
+                    {% for upload in uploads %}
+                        <div class="upload-item">
+                            <div>
+                                <h3>{{ upload.title|default:upload.file_name }}</h3>
+                                <span class="upload-meta">{{ upload.file_name }} • {{ upload.uploaded_at|date:"M j, Y H:i" }} • {{ upload.status|capfirst }}</span>
+                                <p>{{ upload.analysis|truncatewords:25 }}</p>
+                            </div>
+                            <div class="upload-actions">
+                                <a href="{% url 'document_upload' %}" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <h3>No uploads yet</h3>
+                    <p>Upload a document or video to begin storing and analyzing your content.</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <script>
+        // Keep the user focused on upload flow
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Export - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Export Data</h1>
+    <p>Export your journal data.</p>
+    <a href="{% url 'entry_export_csv' %}" class="btn btn-primary">Export as CSV</a>
+</div>
+{% endblock %}

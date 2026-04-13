@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete {{ entry.title }}</title>
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <div class="topbar">
+            <h1><i class="fa-solid fa-trash icon"></i>Delete Entry</h1>
+            <a class="button-link" href="{% url 'entry_detail' entry.pk %}"><i class="fa-solid fa-arrow-left icon"></i>Cancel</a>
+        </div>
+        <p>Are you sure you want to delete "{{ entry.title }}"?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit"><i class="fa-solid fa-check icon"></i>Yes, Delete</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Calendar View</h1>
+    <p>View your entries by date.</p>
+    <!-- Add calendar implementation here, perhaps using a library or simple list -->
+    <div class="calendar">
+        {% for entry in entries %}
+            <div class="entry-item">
+                <h3>{{ entry.title }}</h3>
+                <p>{{ entry.date_created|date:"M d, Y" }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

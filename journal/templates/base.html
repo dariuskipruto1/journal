@@ -1,0 +1,261 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Journal Desk - Your personal journal and task management app">
+    <meta name="theme-color" content="#6366f1">
+    <title>{% block title %}Journal Desk | Write, Track, Reflect{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%236366f1' width='32' height='32' rx='8'/%3E%3Cpath fill='white' d='M8 16h16M8 20h12M8 12h10' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body data-theme="dark">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'entry_list' %}" style="gap: 10px;">
+                <i class="fas fa-book-open" style="font-size: 1.5em; color: #57b8d9;"></i>
+                <div>
+                    <strong style="font-size: 1.1em;">Journal Desk</strong>
+                    <div style="font-size: 0.65em; opacity: 0.8; line-height: 1;">Your Digital Diary</div>
+                </div>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="navbar-text me-3">
+                                <i class="fas fa-user-circle"></i> {{ user.username }}
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'entry_list' %}" title="All Entries">
+                                <i class="fas fa-file-alt"></i> Entries
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'task_list' %}" title="Task Management">
+                                <i class="fas fa-tasks"></i> Tasks
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'analytics' %}" title="Analytics Dashboard">
+                                <i class="fas fa-chart-line"></i> Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="featuresDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-star"></i> Features
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="featuresDropdown">
+                                <li><a class="dropdown-item" href="{% url 'email_reminders' %}"><i class="fas fa-envelope"></i> Email Reminders</a></li>
+                                <li><a class="dropdown-item" href="{% url 'notifications' %}"><i class="fas fa-bell"></i> Notifications</a></li>
+                                <li><a class="dropdown-item" href="{% url 'voice_entry' %}"><i class="fas fa-microphone"></i> Voice Entry</a></li>
+                                <li><a class="dropdown-item" href="{% url 'collaboration' %}"><i class="fas fa-users"></i> Collaboration</a></li>
+                                <li><a class="dropdown-item" href="{% url 'social_sharing' %}"><i class="fas fa-share-nodes"></i> Social Sharing</a></li>
+                                <li><a class="dropdown-item" href="{% url 'cloud_backup' %}"><i class="fas fa-cloud"></i> Cloud Backup</a></li>
+                                <li><a class="dropdown-item" href="{% url 'calendar_integration' %}"><i class="fas fa-calendar"></i> Calendar</a></li>
+                                <li><a class="dropdown-item" href="{% url 'advanced_analytics' %}"><i class="fas fa-chart-area"></i> Advanced Analytics</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profile' %}" title="Profile Settings">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <button id="theme-toggle" class="theme-toggle" title="Toggle Theme">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline ms-2">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary ms-2" href="{% url 'signup' %}">Sign Up</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <h6>Journal Desk</h6>
+                    <p class="text-muted">Write it. Keep it. Reflect on it.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'help_page' %}">Help & FAQ</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>Connect</h6>
+                    <div class="gap-2 d-flex">
+                        <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="#" title="Email"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center text-muted">
+                <p>&copy; 2026 Journal Desk. All rights reserved. Made with <i class="fas fa-heart text-danger"></i> for thoughtful journaling.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating AI Chatbot (conditional) -->
+    {% if user.is_authenticated %}
+    <div id="chatbot-widget" class="chatbot-widget">
+        <div class="chatbot-header">
+            <span><i class="fas fa-robot"></i> AI Assistant</span>
+            <button id="chatbot-toggle" class="chatbot-toggle" title="Minimize">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="chatbot-body" style="display: none;">
+            <div id="chat-messages" class="chat-messages"></div>
+            <form id="chat-form" class="chat-form">
+                {% csrf_token %}
+                <input type="text" id="chat-input" placeholder="Ask me anything..." required>
+                <button type="submit" title="Send"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Theme Toggle Script -->
+    <script>
+        // Theme management
+        const htmlRoot = document.getElementById('html-root');
+        const themeToggle = document.getElementById('theme-toggle');
+        const savedTheme = localStorage.getItem('journal-theme') || 'dark';
+
+        // Set initial theme
+        htmlRoot.setAttribute('data-theme', savedTheme);
+        if (themeToggle) {
+            themeToggle.innerHTML = savedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        }
+
+        // Theme toggle handler
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlRoot.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                htmlRoot.setAttribute('data-theme', newTheme);
+                localStorage.setItem('journal-theme', newTheme);
+                themeToggle.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            });
+        }
+
+        // Chatbot functionality
+        const chatWidget = document.getElementById('chatbot-widget');
+        const chatToggle = document.getElementById('chatbot-toggle');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatBody = document.querySelector('.chatbot-body');
+
+        if (chatToggle) {
+            chatToggle.addEventListener('click', () => {
+                chatBody.style.display = chatBody.style.display === 'none' ? 'flex' : 'none';
+                chatToggle.innerHTML = chatBody.style.display === 'none' ? '<i class="fas fa-chevron-down"></i>' : '<i class="fas fa-chevron-up"></i>';
+            });
+        }
+
+        if (chatForm) {
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const message = chatInput.value.trim();
+                if (!message) return;
+
+                addMessage('user', message);
+                chatInput.value = '';
+
+                try {
+                    const response = await fetch('/chatbot/live/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({ prompt: message })
+                    });
+                    const data = await response.json();
+                    addMessage('bot', data.response || 'I could not process your request.');
+                } catch (error) {
+                    addMessage('bot', 'Sorry, I encountered an error. Please try again.');
+                }
+            });
+        }
+
+        function addMessage(sender, text) {
+            const msg = document.createElement('div');
+            msg.className = `chat-message ${sender}`;
+            msg.innerHTML = `<span>${text}</span>`;
+            if (chatMessages) {
+                chatMessages.appendChild(msg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,286 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Task Management - Journal Desk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <!-- Smart Navigation Header -->
+        <header class="smart-nav">
+            <div class="nav-brand">
+                <a href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-book-open nav-icon"></i>
+                    <span class="nav-title">Journal Desk</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="{% url 'dashboard' %}" class="nav-item">
+                    <i class="fa-solid fa-gauge nav-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'entry_list' %}" class="nav-item">
+                    <i class="fa-solid fa-file-alt nav-icon"></i>
+                    <span>Entries</span>
+                </a>
+                <a href="{% url 'task_list' %}" class="nav-item active">
+                    <i class="fa-solid fa-tasks nav-icon"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'analytics' %}" class="nav-item">
+                    <i class="fa-solid fa-chart-line nav-icon"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="{% url 'entry_search' %}" class="nav-item">
+                    <i class="fa-solid fa-search nav-icon"></i>
+                    <span>Search</span>
+                </a>
+            </nav>
+
+            <div class="nav-actions">
+                <div class="user-menu">
+                    <button class="user-menu-btn">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span>{{ user.username }}</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-menu-dropdown">
+                        <a href="{% url 'profile' %}">
+                            <i class="fa-solid fa-user"></i> Profile
+                        </a>
+                        <a href="{% url 'help_page' %}">
+                            <i class="fa-solid fa-question-circle"></i> Help
+                        </a>
+                        <hr>
+                        <form method="post" action="{% url 'logout' %}" class="inline-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">
+                                <i class="fa-solid fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="header-content">
+                <h1><i class="fa-solid fa-tasks"></i> Task Management</h1>
+                <p>Organize and track your tasks across all journal entries</p>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'entry_list' %}#add-entry" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> New Task
+                </a>
+            </div>
+        </section>
+
+        {% if messages %}
+            <section class="messages" aria-live="polite">
+                {% for message in messages %}
+                    <p class="message {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <!-- Task Statistics -->
+        <section class="stats-overview">
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-tasks"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ stats.total_tasks }}</span>
+                        <span class="stat-label">Total Tasks</span>
+                    </div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ stats.pending_tasks }}</span>
+                        <span class="stat-label">Pending</span>
+                    </div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ stats.completed_tasks }}</span>
+                        <span class="stat-label">Completed</span>
+                    </div>
+                </div>
+
+                {% if stats.overdue_tasks > 0 %}
+                <div class="stat-card danger">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ stats.overdue_tasks }}</span>
+                        <span class="stat-label">Overdue</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Filters and Controls -->
+        <section class="filters-section">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-filter"></i> Status:</label>
+                    <select id="statusFilter" onchange="applyFilters()">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Tasks</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-flag"></i> Priority:</label>
+                    <select id="priorityFilter" onchange="applyFilters()">
+                        <option value="all" {% if priority_filter == 'all' %}selected{% endif %}>All Priorities</option>
+                        <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>High</option>
+                        <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Low</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-sort"></i> Sort by:</label>
+                    <select id="sortFilter" onchange="applyFilters()">
+                        <option value="due_soon" {% if sort_by == 'due_soon' %}selected{% endif %}>Due Soon</option>
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
+                        <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest</option>
+                        <option value="priority" {% if sort_by == 'priority' %}selected{% endif %}>Priority</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Task List -->
+        <section class="task-list-section">
+            {% if tasks %}
+                <div class="task-list">
+                    {% for task in tasks %}
+                        <div class="task-item {% if task.task_completed %}completed{% endif %} {% if task.is_overdue %}overdue{% endif %}">
+                            <div class="task-status">
+                                <form method="post" action="{% url 'entry_toggle_task' task.pk %}" class="inline-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'task_list' %}?status={{ status_filter }}&priority={{ priority_filter }}&sort={{ sort_by }}">
+                                    <button type="submit" class="task-checkbox {% if task.task_completed %}checked{% endif %}">
+                                        {% if task.task_completed %}
+                                            <i class="fa-solid fa-check-circle"></i>
+                                        {% else %}
+                                            <i class="fa-regular fa-circle"></i>
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div class="task-content">
+                                <div class="task-header">
+                                    <h3>
+                                        <a href="{% url 'entry_detail' task.pk %}">{{ task.title }}</a>
+                                    </h3>
+                                    {% if task.task_priority %}
+                                        <span class="priority-badge priority-{{ task.task_priority }}">
+                                            <i class="fa-solid fa-flag"></i> {{ task.task_priority_label }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <p class="task-description">{{ task.task }}</p>
+
+                                <div class="task-meta">
+                                    <span class="task-date">
+                                        <i class="fa-solid fa-calendar"></i>
+                                        Created {{ task.date_created|date:"M j, Y" }}
+                                    </span>
+
+                                    {% if task.task_due_at %}
+                                        <span class="task-due {% if task.is_overdue %}overdue{% endif %}">
+                                            <i class="fa-solid fa-clock"></i>
+                                            Due {{ task.task_due_at|date:"M j, H:i" }}
+                                            {% if task.is_overdue %}
+                                                <span class="overdue-badge">OVERDUE</span>
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+
+                                    {% if task.content %}
+                                        <span class="task-has-content">
+                                            <i class="fa-solid fa-file-alt"></i>
+                                            Has notes
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="task-actions">
+                                <a href="{% url 'entry_edit' task.pk %}" class="task-action-btn" title="Edit">
+                                    <i class="fa-solid fa-edit"></i>
+                                </a>
+                                <a href="{% url 'entry_detail' task.pk %}" class="task-action-btn" title="View">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-tasks"></i>
+                    <h3>No tasks found</h3>
+                    <p>
+                        {% if status_filter != 'all' or priority_filter != 'all' %}
+                            Try adjusting your filters or <a href="{% url 'task_list' %}">view all tasks</a>.
+                        {% else %}
+                            You haven't created any tasks yet. <a href="{% url 'entry_list' %}#add-entry">Create your first entry with a task</a>.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <script>
+        function applyFilters() {
+            const status = document.getElementById('statusFilter').value;
+            const priority = document.getElementById('priorityFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+
+            const params = new URLSearchParams();
+            if (status !== 'all') params.append('status', status);
+            if (priority !== 'all') params.append('priority', priority);
+            if (sort !== 'due_soon') params.append('sort', sort);
+
+            const queryString = params.toString();
+            window.location.href = `{% url 'task_list' %}${queryString ? '?' + queryString : ''}`;
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + F to focus search (if we had search)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                // Could focus a search input if added
+            }
+        });
+    </script>
+</body>
+</html>

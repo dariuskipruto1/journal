@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <div class="topbar">
+            <h1><i class="fa-solid fa-right-to-bracket icon"></i>Login</h1>
+            <a class="button-link" href="{% url 'entry_list' %}"><i class="fa-solid fa-arrow-left icon"></i>Home</a>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit"><i class="fa-solid fa-right-to-bracket icon"></i>Login</button>
+        </form>
+        <p>Don't have an account? <a href="{% url 'signup' %}">Sign up</a></p>
+    </div>
+</body>
+</html>

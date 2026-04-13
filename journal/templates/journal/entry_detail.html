@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ entry.title }}</title>
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <div class="topbar">
+            <h1><i class="fa-solid fa-book-open icon"></i>Entry Details</h1>
+            <a class="button-link" href="{% url 'entry_list' %}"><i class="fa-solid fa-arrow-left icon"></i>Back</a>
+        </div>
+        <h2><i class="fa-solid fa-pen-nib icon"></i>{{ entry.title }}</h2>
+        {% if entry.task %}
+            <p><i class="fa-solid fa-tasks icon"></i><strong>Task:</strong> {{ entry.task }}</p>
+        {% endif %}
+        <p>{{ entry.content }}</p>
+        <p class="entry-meta">Created: {{ entry.date_created }} | Updated: {{ entry.date_updated }}</p>
+        <p>
+            <a href="{% url 'entry_edit' entry.pk %}"><i class="fa-solid fa-edit icon"></i>Edit</a> |
+            <a href="{% url 'entry_delete' entry.pk %}"><i class="fa-solid fa-trash icon"></i>Delete</a>
+        </p>
+    </div>
+</body>
+</html>

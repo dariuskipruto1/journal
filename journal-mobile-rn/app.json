@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Journal Desk",
+    "slug": "journal-desk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#57b8d9"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTabletMode": true,
+      "supportsLandscape": false,
+      "buildNumber": "1",
+      "bundleIdentifier": "com.journaldesk.app",
+      "deploymentTarget": "13.0"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#57b8d9"
+      },
+      "package": "com.journaldesk.app",
+      "versionCode": 1,
+      "targetSdkVersion": 33,
+      "minSdkVersion": 21
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "schemes": ["journaldesk"],
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Journal Desk to access your camera for voice entries and photos."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Journal Desk to access your microphone for voice entries."
+        }
+      ]
+    ]
+  }
+}

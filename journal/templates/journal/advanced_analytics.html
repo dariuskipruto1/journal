@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced Analytics -Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1><i class="fa-solid fa-chart-line"></i> Advanced Analytics</h1>
+    <p>Deep insights into your journaling patterns and productivity.</p>
+    
+    <div class="analytics-dashboard">
+        <div class="stat-cards">
+            <div class="stat-card">
+                <h3>Total Entries</h3>
+                <div class="stat-value">{{ total_entries }}</div>
+                <p>entries written</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Words</h3>
+                <div class="stat-value">{{ total_words }}</div>
+                <p>words written</p>
+            </div>
+            <div class="stat-card">
+                <h3>Average</h3>
+                <div class="stat-value">{% if total_entries %}{{ total_words|add:0|floatformat:0|add:0 }}{% else %}0{% endif %}</div>
+                <p>words per entry</p>
+            </div>
+            <div class="stat-card">
+                <h3>Streak</h3>
+                <div class="stat-value">{{ analytics.longest_streak|default:0 }}</div>
+                <p>days longest</p>
+            </div>
+        </div>
+        
+        <div class="analytics-grid">
+            <div class="analytics-section">
+                <h2>Mood Distribution</h2>
+                <div class="mood-chart">
+                    {% if mood_distribution %}
+                        {% for mood, count in mood_distribution.items %}
+                        <div class="mood-bar">
+                            <label>{{ mood }}</label>
+                            <div class="bar-container">
+                                <div class="bar" style="width: {{ count|add:0|multiplied_by:100|divide:total_entries }}%"></div>
+                            </div>
+                            <span>{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <p class="empty">No mood data yet</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="analytics-section">
+                <h2>Writing Insights</h2>
+                <div class="insights-list">
+                    <div class="insight-item">
+                        <span>Peak Writing Hour:</span>
+                        <strong>{{ analytics.peak_writing_hour|default:"N/A" }}:00</strong>
+                    </div>
+                    <div class="insight-item">
+                        <span>Peak Writing Day:</span>
+                        <strong>{{ analytics.peak_writing_day|default:"N/A" }}</strong>
+                    </div>
+                    <div class="insight-item">
+                        <span>Avg Words per Entry:</span>
+                        <strong>{{ analytics.average_words_per_entry|floatformat:0|default:"0" }}</strong>
+                    </div>
+                    <div class="insight-item">
+                        <span>Task Completion Rate:</span>
+                        <strong>{{ analytics.task_completion_rate|floatformat:1|default:"0" }}%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="productivity-section">
+            <h2>Productivity Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <h4>Tasks Completed</h4>
+                    <p>Track your productivity</p>
+                </div>
+                <div class="metric-card">
+                    <i class="fa-solid fa-fire"></i>
+                    <h4>Current Streak</h4>
+                    <p>Keep the momentum going</p>
+                </div>
+                <div class="metric-card">
+                    <i class="fa-solid fa-star"></i>
+                    <h4>Favorites</h4>
+                    <p>Your favorite entries</p>
+                </div>
+                <div class="metric-card">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <h4>Insights</h4>
+                    <p>AI-powered recommendations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.analytics-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #36454F;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    border-color: #57c1ff;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(87, 193, 255, 0.15);
+}
+
+.stat-card h3 {
+    margin: 0 0 0.5rem 0;
+    color: #d5dce7;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #57c1ff;
+    margin: 0.5rem 0;
+}
+
+.stat-card p {
+    margin: 0;
+    color: #8892aa;
+    font-size: 0.9rem;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.analytics-section {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #36454F;
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.analytics-section h2 {
+    margin-top: 0;
+    color: #57c1ff;
+}
+
+.mood-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.mood-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mood-bar label {
+    flex: 0 0 100px;
+    color: #d5dce7;
+}
+
+.bar-container {
+    flex: 1;
+    height: 24px;
+    background: rgba(52, 73, 94, 0.5);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.bar {
+    height: 100%;
+    background: linear-gradient(90deg, #57c1ff, #258dff);
+    border-radius: 12px;
+    min-width: 2px;
+}
+
+.mood-bar span {
+    flex: 0 0 40px;
+    text-align: right;
+    color: #57c1ff;
+    font-weight: bold;
+}
+
+.insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.insight-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(87, 193, 255, 0.1);
+    border-left: 4px solid #57c1ff;
+    border-radius: 4px;
+}
+
+.insight-item span {
+    color: #d5dce7;
+}
+
+.insight-item strong {
+    color: #57c1ff;
+    font-size: 1.2rem;
+}
+
+.productivity-section {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #36454F;
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.productivity-section h2 {
+    margin-top: 0;
+    color: #57c1ff;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+}
+
+.metric-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(87, 193, 255, 0.1);
+    border: 1px solid #57c1ff;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(87, 193, 255, 0.15);
+}
+
+.metric-card i {
+    font-size: 2rem;
+    color: #57c1ff;
+    margin-bottom: 0.5rem;
+}
+
+.metric-card h4 {
+    margin: 0.5rem 0;
+    color: #f8fbff;
+}
+
+.metric-card p {
+    margin: 0;
+    color: #8892aa;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}

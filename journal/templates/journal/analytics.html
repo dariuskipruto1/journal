@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analytics - Journal{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="page-container">
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="header-content">
+            <h1><i class="fa-solid fa-chart-line"></i> Analytics & Insights</h1>
+            <p>Track your journaling patterns and productivity trends</p>
+        </div>
+        <div class="header-actions">
+            <button onclick="refreshAnalytics()" class="btn btn-secondary">
+                <i class="fa-solid fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </section>
+        {% if messages %}
+            <section class="messages" aria-live="polite">
+                {% for message in messages %}
+                    <p class="message {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <!-- Analytics Overview -->
+        <section class="analytics-overview">
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <div class="analytics-header">
+                        <h3><i class="fa-solid fa-calendar-days"></i> Writing Activity</h3>
+                    </div>
+                    <div class="analytics-content">
+                        <canvas id="activityChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="analytics-header">
+                        <h3><i class="fa-solid fa-clock"></i> Writing Time Distribution</h3>
+                    </div>
+                    <div class="analytics-content">
+                        <canvas id="timeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="analytics-header">
+                        <h3><i class="fa-solid fa-star"></i> Starred Entries</h3>
+                    </div>
+                    <div class="analytics-content">
+                        <canvas id="starredChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="analytics-header">
+                        <h3><i class="fa-solid fa-tasks"></i> Task Completion</h3>
+                    </div>
+                    <div class="analytics-content">
+                        <canvas id="taskChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Statistics -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-file-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ analytics.total_entries }}</span>
+                        <span class="stat-label">Total Entries</span>
+                    </div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ analytics.starred_entries }}</span>
+                        <span class="stat-label">Starred Entries</span>
+                    </div>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ analytics.avg_words_per_entry }}</span>
+                        <span class="stat-label">Avg Words/Entry</span>
+                    </div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-calendar-week"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ analytics.entries_this_week }}</span>
+                        <span class="stat-label">This Week</span>
+                    </div>
+                </div>
+
+                <div class="stat-card secondary">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-calendar-month"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ analytics.entries_this_month }}</span>
+                        <span class="stat-label">This Month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card danger">
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ analytics.current_streak }}</span>
+                        <span class="stat-label">Day Streak</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Insights Section -->
+        <section class="insights-section">
+            <h2><i class="fa-solid fa-lightbulb"></i> Insights & Recommendations</h2>
+            <div class="insights-grid">
+                {% for insight in insights %}
+                    <div class="insight-card">
+                        <div class="insight-icon">
+                            <i class="fa-solid {{ insight.icon }}"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h4>{{ insight.title }}</h4>
+                            <p>{{ insight.description }}</p>
+                            {% if insight.action %}
+                                <a href="{{ insight.action_url }}" class="insight-action">{{ insight.action }}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="recent-activity">
+            <h2><i class="fa-solid fa-history"></i> Recent Activity</h2>
+            <div class="activity-timeline">
+                {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fa-solid {{ activity.icon }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p>{{ activity.description }}</p>
+                            <span class="activity-time">{{ activity.timestamp|timesince }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Activity Chart
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        new Chart(activityCtx, {
+            type: 'line',
+            data: {
+                labels: {{ analytics.activity_labels|safe }},
+                datasets: [{
+                    label: 'Entries',
+                    data: {{ analytics.activity_data|safe }},
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // Time Distribution Chart
+        const timeCtx = document.getElementById('timeChart').getContext('2d');
+        new Chart(timeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Morning', 'Afternoon', 'Evening', 'Night'],
+                datasets: [{
+                    data: {{ analytics.time_distribution|safe }},
+                    backgroundColor: [
+                        'rgb(255, 193, 7)',
+                        'rgb(40, 167, 69)',
+                        'rgb(23, 162, 184)',
+                        'rgb(108, 117, 125)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Starred Entries Chart
+        const starredCtx = document.getElementById('starredChart').getContext('2d');
+        new Chart(starredCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Starred', 'Not Starred'],
+                datasets: [{
+                    data: [{{ analytics.starred_entries }}, {{ analytics.total_entries|add:analytics.starred_entries|sub:analytics.starred_entries }}],
+                    backgroundColor: [
+                        'rgb(255, 193, 7)',
+                        'rgb(108, 117, 125)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Task Completion Chart
+        const taskCtx = document.getElementById('taskChart').getContext('2d');
+        new Chart(taskCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Completed', 'Pending'],
+                datasets: [{
+                    data: [{{ analytics.completed_tasks }}, {{ analytics.pending_tasks }}],
+                    backgroundColor: [
+                        'rgb(40, 167, 69)',
+                        'rgb(255, 193, 7)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        function refreshAnalytics() {
+            window.location.reload();
+        }
+
+        // Auto-refresh every 5 minutes
+        setInterval(refreshAnalytics, 300000);
+    </script>
+{% endblock %}

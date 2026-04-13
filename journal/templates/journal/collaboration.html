@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Collaboration - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1><i class="fa-solid fa-users"></i> Collaboration</h1>
+    <p>Create shared entries and collaborate with team members in real-time.</p>
+    
+    <div class="collab-section">
+        <div class="create-collab-card">
+            <h2>Create New Collaborative Entry</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="collab_title">Title:</label>
+                    <input type="text" id="collab_title" name="title" placeholder="Enter entry title" required>
+                </div>
+                <div class="form-group">
+                    <label for="collab_content">Content:</label>
+                    <textarea id="collab_content" name="content" rows="8" placeholder="Enter your content..." required></textarea>
+                </div>
+                <button type="submit" name="action" value="create" class="btn btn-primary">Create Collaborative Entry</button>
+            </form>
+        </div>
+        
+        <div class="team-entries-section">
+            <h2>My Team Entries</h2>
+            {% if team_entries %}
+                <div class="team-entries-grid">
+                    {% for entry in team_entries %}
+                    <div class="team-entry-card">
+                        <div class="entry-header">
+                            <h3>{{ entry.title }}</h3>
+                            <span class="creator-badge">by {{ entry.creator.first_name|default:entry.creator.username }}</span>
+                        </div>
+                        <p>{{ entry.content|truncatewords:20 }}</p>
+                        <div class="entry-meta">
+                            <span class="members-count">
+                                <i class="fa-solid fa-users"></i> {{ entry.members.count }} members
+                            </span>
+                            <span class="comments-count">
+                                <i class="fa-solid fa-comments"></i> {{ entry.comments.count }} comments
+                            </span>
+                        </div>
+                        <a href="#" class="btn btn-sm">View Details</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-handshake"></i>
+                <p>No collaborative entries yet. Create one to get started!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.collab-section {
+    display: grid;
+    gap: 2rem;
+}
+
+.create-collab-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #36454F;
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.create-collab-card h2 {
+    margin-top: 0;
+    color: #57c1ff;
+}
+
+.team-entries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.team-entry-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #57c1ff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.team-entry-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(87, 193, 255, 0.2);
+}
+
+.entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.creator-badge {
+    padding: 0.25rem 0.75rem;
+    background: rgba(87, 193, 255, 0.2);
+    color: #57c1ff;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.entry-meta {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: #d5dce7;
+}
+
+.members-count, .comments-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}

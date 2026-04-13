@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Quick Notes - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1><i class="fa-solid fa-sticky-note"></i> Quick Notes & Ideas</h1>
+    <p>Capture ideas and quick thoughts instantly.</p>
+    
+    <div class="quick-entry-form">
+        <form action="{% url 'entry_list' %}" method="get" style="display: inline;">
+            <button type="submit" class="btn btn-primary btn-large">
+                <i class="fa-solid fa-plus"></i> Add New Note
+            </button>
+        </form>
+    </div>
+
+    <section class="notes-grid">
+        {% if recent_notes %}
+            {% for note in recent_notes %}
+            <div class="note-card">
+                <div class="note-header">
+                    <h3>{{ note.title }}</h3>
+                    <div class="note-actions">
+                        {% if note.is_starred %}
+                        <i class="fa-solid fa-star" style="color: #fbbf24;"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="note-content">{{ note.content|truncatechars:150 }}</p>
+                <div class="note-meta">
+                    <small><i class="fa-solid fa-clock"></i> {{ note.date_created|timesince }} ago</small>
+                    {% if note.category %}
+                    <small class="note-category">{{ note.category }}</small>
+                    {% endif %}
+                </div>
+                <a href="{% url 'entry_detail' note.pk %}" class="note-link">View →</a>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-lightbulb"></i>
+            <p>No notes yet. Start capturing your ideas!</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+.quick-entry-form {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.btn-large {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.note-card {
+    background: linear-gradient(135deg, rgba(87, 193, 255, 0.1), rgba(102, 146, 255, 0.05));
+    border: 1.5px solid rgba(87, 193, 255, 0.2);
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.note-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(87, 193, 255, 0.5), transparent);
+}
+
+.note-card:hover {
+    border-color: rgba(87, 193, 255, 0.5);
+    background: linear-gradient(135deg, rgba(87, 193, 255, 0.15), rgba(102, 146, 255, 0.1));
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(87, 193, 255, 0.2);
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 12px;
+}
+
+.note-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-strong);
+}
+
+.note-actions {
+    font-size: 14px;
+}
+
+.note-content {
+    margin: 10px 0;
+    color: var(--text-soft);
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.note-meta {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0;
+    font-size: 12px;
+    color: rgba(213, 220, 231, 0.7);
+}
+
+.note-category {
+    background: rgba(87, 193, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--accent);
+}
+
+.note-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--accent);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.note-link:hover {
+    color: var(--accent-strong);
+    transform: translateX(3px);
+}
+</style>
+{% endblock %}

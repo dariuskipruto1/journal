@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}AI Insights - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1><i class="fa-solid fa-brain"></i> AI Insights & Recommendations</h1>
+    <p>Get personalized insights powered by AI based on your journal entries.</p>
+    
+    <div class="insights-container">
+        <section class="insight-card featured">
+            <div class="insight-header">
+                <h2><i class="fa-solid fa-lightbulb"></i> Personalized Insights</h2>
+                <span class="insight-badge">AI-Powered</span>
+            </div>
+            <p>Ask our AI assistant questions about your journaling patterns, get recommendations, and explore your thoughts deeper.</p>
+            <a href="{% url 'ollama_chat' %}" class="btn btn-primary">
+                <i class="fa-solid fa-message"></i> Chat with AI
+            </a>
+        </section>
+
+        <section class="insight-card">
+            <h3><i class="fa-solid fa-trending-up"></i> Writing Patterns</h3>
+            <p>Analyze how your writing frequency, mood, and themes evolve over time.</p>
+            <a href="{% url 'analytics' %}" class="btn btn-secondary">View Analytics</a>
+        </section>
+
+        <section class="insight-card">
+            <h3><i class="fa-solid fa-tasks"></i> Task Insights</h3>
+            <p>Understand your productivity patterns and task completion rates.</p>
+            <a href="{% url 'task_list' %}" class="btn btn-secondary">View Tasks</a>
+        </section>
+
+        <section class="insight-card">
+            <h3><i class="fa-solid fa-heart"></i> Emotional Tracking</h3>
+            <p>Monitor youremotional patterns and discover correlations with specific topics or events.</p>
+            <a href="{% url 'mood_tracker' %}" class="btn btn-secondary">Track Mood</a>
+        </section>
+
+        <section class="insight-card">
+            <h3><i class="fa-solid fa-lightbulb"></i> Smart Recommendations</h3>
+            <p>Receive personalized recommendations for reflection, goals, and personal growth.</p>
+            <button class="btn btn-secondary" onclick="alert('Ask the AI for recommendations!')">Get Recommendations</button>
+        </section>
+
+        <section class="insight-card">
+            <h3><i class="fa-solid fa-search"></i> Advanced Search</h3>
+            <p>Search your entries by mood, tags, dates, or ask the AI to find relevant entries for you.</p>
+            <a href="{% url 'entry_search' %}" class="btn btn-secondary">Search Entries</a>
+        </section>
+    </div>
+</div>
+
+<style>
+.insights-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.insight-card {
+    background: linear-gradient(135deg, rgba(87, 193, 255, 0.1), rgba(102, 146, 255, 0.05));
+    border: 1.5px solid rgba(87, 193, 255, 0.2);
+    border-radius: 14px;
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+.insight-card.featured {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(87, 193, 255, 0.15), rgba(102, 146, 255, 0.1));
+    border-color: rgba(87, 193, 255, 0.4);
+}
+
+.insight-card:hover {
+    border-color: rgba(87, 193, 255, 0.5);
+    background: linear-gradient(135deg, rgba(87, 193, 255, 0.15), rgba(102, 146, 255, 0.1));
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(87, 193, 255, 0.2);
+}
+
+.insight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.insight-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.insight-badge {
+    background: rgba(87, 193, 255, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    border: 1px solid rgba(87, 193, 255, 0.4);
+}
+
+.insight-card h3 {
+    margin-top: 0;
+    color: var(--text-strong);
+}
+
+.insight-card p {
+    color: var(--text-soft);
+    margin-bottom: 15px;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, rgba(87, 193, 255, 0.3), rgba(102, 146, 255, 0.2));
+    border: 1px solid rgba(87, 193, 255, 0.4);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, rgba(87, 193, 255, 0.4), rgba(102, 146, 255, 0.3));
+    border-color: rgba(87, 193, 255, 0.6);
+}
+</style>
+{% endblock %}

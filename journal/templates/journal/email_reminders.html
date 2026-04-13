@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Email Reminders - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1><i class="fa-solid fa-envelope"></i> Email Reminders</h1>
+    <p>Manage your email reminder preferences and history.</p>
+    
+    <div class="feature-section">
+        <div class="feature-card">
+            <h2>Active Reminders</h2>
+            {% if reminders %}
+                <div class="reminders-list">
+                    {% for reminder in reminders %}
+                    <div class="reminder-item {% if not reminder.is_active %}inactive{% endif %}">
+                        <div class="reminder-info">
+                            <h4>{{ reminder.entry.title|truncatewords:10 }}</h4>
+                            <p>Task: {{ reminder.entry.task }}</p>
+                            <small>
+                                <i class="fa-solid fa-calendar"></i> {{ reminder.reminder_time|date:"M d, Y H:i" }}
+                                <span class="frequency-badge">{{ reminder.frequency|title }}</span>
+                            </small>
+                        </div>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="reminder_id" value="{{ reminder.id }}">
+                            <button type="submit" name="action" value="toggle" class="btn btn-sm">
+                                {% if reminder.is_active %}Disable{% else %}Enable{% endif %}
+                            </button>
+                            <button type="submit" name="action" value="delete" class="btn btn-sm btn-danger" onclick="return confirm('Delete this reminder?')">Delete</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-inbox"></i>
+                <p>No reminders configured yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="feature-card">
+            <h2>Reminder Settings</h2>
+            <form class="settings-form">
+                <div class="form-group">
+                    <label for="email_frequency">Email Frequency:</label>
+                    <select id="email_frequency">
+                        <option>Immediate</option>
+                        <option>Daily Digest</option>
+                        <option>Weekly Summary</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reminder_time">Default Reminder Time:</label>
+                    <input type="time" id="reminder_time" value="09:00">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" checked> Enable email notifications
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Preferences</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.reminder-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    background: rgba(87, 193, 255, 0.1);
+    border: 1px solid #57c1ff;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.reminder-item.inactive {
+    opacity: 0.6;
+    background: rgba(100, 100, 100, 0.1);
+    border-color: #666;
+}
+
+.frequency-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: #57c1ff;
+    color: #0a1830;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+</style>
+{% endblock %}

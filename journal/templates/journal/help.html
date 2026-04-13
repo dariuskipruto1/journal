@@ -1,0 +1,378 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Help & Support - Journal Desk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <!-- Smart Navigation Header -->
+        <header class="smart-nav">
+            <div class="nav-brand">
+                <a href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-book-open nav-icon"></i>
+                    <span class="nav-title">Journal Desk</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="{% url 'dashboard' %}" class="nav-item">
+                    <i class="fa-solid fa-gauge nav-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'entry_list' %}" class="nav-item">
+                    <i class="fa-solid fa-file-alt nav-icon"></i>
+                    <span>Entries</span>
+                </a>
+                <a href="{% url 'task_list' %}" class="nav-item">
+                    <i class="fa-solid fa-tasks nav-icon"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'analytics' %}" class="nav-item">
+                    <i class="fa-solid fa-chart-line nav-icon"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="{% url 'entry_search' %}" class="nav-item">
+                    <i class="fa-solid fa-search nav-icon"></i>
+                    <span>Search</span>
+                </a>
+            </nav>
+
+            <div class="nav-actions">
+                <div class="user-menu">
+                    <button class="user-menu-btn">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span>{{ user.username }}</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-menu-dropdown">
+                        <a href="{% url 'profile' %}">
+                            <i class="fa-solid fa-user"></i> Profile
+                        </a>
+                        <a href="{% url 'help_page' %}">
+                            <i class="fa-solid fa-question-circle"></i> Help
+                        </a>
+                        <hr>
+                        <form method="post" action="{% url 'logout' %}" class="inline-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">
+                                <i class="fa-solid fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="header-content">
+                <h1><i class="fa-solid fa-question-circle"></i> Help & Support</h1>
+                <p>Find answers to common questions and get support</p>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <div class="actions-grid">
+                <a href="#getting-started" class="action-card">
+                    <i class="fa-solid fa-rocket"></i>
+                    <h3>Getting Started</h3>
+                    <p>Learn the basics of using Journal Desk</p>
+                </a>
+
+                <a href="#features" class="action-card">
+                    <i class="fa-solid fa-star"></i>
+                    <h3>Features Guide</h3>
+                    <p>Explore all available features</p>
+                </a>
+
+                <a href="#troubleshooting" class="action-card">
+                    <i class="fa-solid fa-wrench"></i>
+                    <h3>Troubleshooting</h3>
+                    <p>Common issues and solutions</p>
+                </a>
+
+                <a href="#contact" class="action-card">
+                    <i class="fa-solid fa-envelope"></i>
+                    <h3>Contact Support</h3>
+                    <p>Get help from our team</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Help Content -->
+        <section class="help-content">
+            <!-- Getting Started -->
+            <div id="getting-started" class="help-section">
+                <h2><i class="fa-solid fa-rocket"></i> Getting Started</h2>
+
+                <div class="help-article">
+                    <h3>Welcome to Journal Desk</h3>
+                    <p>Journal Desk is your personal digital journal with AI assistance, task management, and analytics. Here's how to get started:</p>
+
+                    <ol>
+                        <li><strong>Create your first entry:</strong> Click "New Entry" from the dashboard or entries page.</li>
+                        <li><strong>Add tasks:</strong> Include tasks in your entries to stay organized.</li>
+                        <li><strong>Explore features:</strong> Check out the dashboard, analytics, and search features.</li>
+                        <li><strong>Customize:</strong> Update your profile and preferences in the settings.</li>
+                    </ol>
+                </div>
+
+                <div class="help-article">
+                    <h3>Navigation Guide</h3>
+                    <p>Use the smart navigation bar at the top to access different sections:</p>
+                    <ul>
+                        <li><strong>Dashboard:</strong> Overview of your activity and quick actions</li>
+                        <li><strong>Entries:</strong> View and manage all your journal entries</li>
+                        <li><strong>Tasks:</strong> Track and complete your tasks</li>
+                        <li><strong>Analytics:</strong> View insights about your journaling habits</li>
+                        <li><strong>Search:</strong> Find specific entries quickly</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Features Guide -->
+            <div id="features" class="help-section">
+                <h2><i class="fa-solid fa-star"></i> Features Guide</h2>
+
+                <div class="help-article">
+                    <h3>AI Assistant</h3>
+                    <p>Use the assistant to stay focused, summarize content, and turn your notes into practical next steps.</p>
+                    <ul>
+                        <li>Create writing prompts and journal ideas</li>
+                        <li>Summarize journal entries and uploaded documents</li>
+                        <li>Generate task plans and progress checklists</li>
+                        <li>Review goals and suggest next actions</li>
+                        <li>Help rewrite notes for clarity and structure</li>
+                    </ul>
+                </div>
+
+                <div class="help-article">
+                    <h3>Document & Video Upload</h3>
+                    <p>Store documents and videos as part of your journal workflow:</p>
+                    <ul>
+                        <li>Upload text, PDF, and video files directly</li>
+                        <li>Store media securely with automatic organization</li>
+                        <li>Receive analysis summaries for text and PDF content</li>
+                        <li>Capture video metadata and review it later</li>
+                        <li>Use the assistant to interpret uploads and generate insights</li>
+                    </ul>
+                </div>
+
+                <div class="help-article">
+                    <h3>Task Management</h3>
+                    <p>Keep track of your goals and deadlines:</p>
+                    <ul>
+                        <li>Add tasks to any journal entry</li>
+                        <li>Set priorities (High, Medium, Low)</li>
+                        <li>Set due dates and get reminders</li>
+                        <li>Mark tasks as completed</li>
+                        <li>View all tasks in one place</li>
+                    </ul>
+                </div>
+
+                <div class="help-article">
+                    <h3>Analytics & Insights</h3>
+                    <p>Understand your journaling patterns:</p>
+                    <ul>
+                        <li>Writing activity over time</li>
+                        <li>Word count statistics</li>
+                        <li>Task completion rates</li>
+                        <li>Streak tracking</li>
+                        <li>Personal insights and recommendations</li>
+                    </ul>
+                </div>
+
+                <div class="help-article">
+                    <h3>Search & Organization</h3>
+                    <p>Find what you need quickly:</p>
+                    <ul>
+                        <li>Full-text search across all entries</li>
+                        <li>Filter by date, tags, or content</li>
+                        <li>Star important entries</li>
+                        <li>View entries by date or category</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Troubleshooting -->
+            <div id="troubleshooting" class="help-section">
+                <h2><i class="fa-solid fa-wrench"></i> Troubleshooting</h2>
+
+                <div class="help-article">
+                    <h3>AI Features Not Working</h3>
+                    <p>If the AI assistant isn't responding:</p>
+                    <ol>
+                        <li>Ensure Ollama is installed and running</li>
+                        <li>Check that the llama2 model is downloaded: <code>ollama pull llama2</code></li>
+                        <li>Verify the AI service is accessible at the configured URL</li>
+                        <li>Check the application logs for error messages</li>
+                    </ol>
+                </div>
+
+                <div class="help-article">
+                    <h3>Weather Widget Not Showing</h3>
+                    <p>If weather information isn't displaying:</p>
+                    <ul>
+                        <li>Check your internet connection</li>
+                        <li>Verify the Open-Meteo API is accessible</li>
+                        <li>Ensure location permissions are enabled (if using geolocation)</li>
+                        <li>Check that weather widget is enabled in your profile settings</li>
+                    </ul>
+                </div>
+
+                <div class="help-article">
+                    <h3>Task Reminders Not Working</h3>
+                    <p>For task reminder issues:</p>
+                    <ul>
+                        <li>Ensure email alerts are enabled in your profile</li>
+                        <li>Check that your email address is configured</li>
+                        <li>Verify the task has a due date set</li>
+                        <li>Check the management command is running: <code>python manage.py send_task_alerts</code></li>
+                    </ul>
+                </div>
+
+                <div class="help-article">
+                    <h3>Performance Issues</h3>
+                    <p>If the application is slow:</p>
+                    <ul>
+                        <li>Check your database size and consider archiving old entries</li>
+                        <li>Ensure proper indexing on database tables</li>
+                        <li>Check server resources (CPU, memory)</li>
+                        <li>Clear browser cache and cookies</li>
+                        <li>Consider using a production database instead of SQLite</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contact Support -->
+            <div id="contact" class="help-section">
+                <h2><i class="fa-solid fa-envelope"></i> Contact Support</h2>
+
+                <div class="help-article">
+                    <h3>Need More Help?</h3>
+                    <p>If you can't find what you're looking for, here are ways to get support:</p>
+
+                    <div class="contact-methods">
+                        <div class="contact-method">
+                            <i class="fa-solid fa-file-alt"></i>
+                            <h4>Documentation</h4>
+                            <p>Check our comprehensive documentation for detailed guides and API references.</p>
+                            <a href="#" class="btn btn-secondary">View Docs</a>
+                        </div>
+
+                        <div class="contact-method">
+                            <i class="fa-solid fa-comments"></i>
+                            <h4>Community Forum</h4>
+                            <p>Join our community forum to ask questions and share experiences with other users.</p>
+                            <a href="#" class="btn btn-secondary">Join Forum</a>
+                        </div>
+
+                        <div class="contact-method">
+                            <i class="fa-solid fa-envelope"></i>
+                            <h4>Email Support</h4>
+                            <p>Contact our support team directly for personalized assistance.</p>
+                            <a href="mailto:support@journaldesk.com" class="btn btn-primary">Email Support</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-article">
+                    <h3>Report a Bug</h3>
+                    <p>Found a bug or issue? Help us improve by reporting it:</p>
+                    <ul>
+                        <li>Include detailed steps to reproduce the issue</li>
+                        <li>Describe what you expected to happen</li>
+                        <li>Include screenshots if applicable</li>
+                        <li>Mention your browser and operating system</li>
+                        <li>Check the application logs for error messages</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary">Report Bug</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2><i class="fa-solid fa-question"></i> Frequently Asked Questions</h2>
+
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h4>Is my data secure?</h4>
+                    <p>Yes, your data is stored securely and is only accessible to you. We use industry-standard encryption and security practices.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Can I export my data?</h4>
+                    <p>Yes, you can export all your journal entries and data from the Profile page. Data is exported in JSON format.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>How do I backup my journal?</h4>
+                    <p>Use the export feature regularly to backup your data. You can also backup the database file directly.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Can I use Journal Desk offline?</h4>
+                    <p>The core functionality works offline, but AI features and weather data require an internet connection.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>How do I delete my account?</h4>
+                    <p>You can delete all your data from the Profile page. Contact support if you need to completely remove your account.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Are there any limits?</h4>
+                    <p>There are no artificial limits on entries or tasks. Performance may vary based on your device and data size.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Highlight current section in navigation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '-50px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    document.querySelectorAll('.action-card').forEach(card => {
+                        card.classList.remove('active');
+                    });
+                    document.querySelector(`a[href="#${id}"]`).classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all help sections
+        document.querySelectorAll('.help-section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>

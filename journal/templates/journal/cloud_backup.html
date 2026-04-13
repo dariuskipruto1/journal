@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Cloud Backup - Journal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1><i class="fa-solid fa-cloud"></i> Cloud Backup</h1>
+    <p>Securely backup and restore your journal entries to the cloud.</p>
+    
+    <div class="backup-grid">
+        <div class="backup-controls">
+            <h2>Backup Management</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="backup-buttons">
+                    <button type="submit" name="action" value="create_backup" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-download"></i> Create Backup Now
+                    </button>
+                </div>
+            </form>
+            
+            <div class="backup-settings">
+                <h3>Backup Settings</h3>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" checked> Auto-backup enabled
+                    </label>
+                    <p>Automatically backup every day at 2:00 AM</p>
+                </div>
+                <div class="setting-item">
+                    <label for="backup_provider">Provider:</label>
+                    <select id="backup_provider">
+                        <option>AWS S3</option>
+                        <option>Google Cloud Storage</option>
+                        <option>Local Storage</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary">Save Settings</button>
+            </div>
+        </div>
+        
+        <div class="backup-history">
+            <h2>Backup History</h2>
+            {% if backups %}
+                <div class="backups-list">
+                    {% for backup in backups %}
+                    <div class="backup-item backup-{{ backup.status }}">
+                        <div class="backup-info">
+                            <h4>{{ backup.created_at|date:"M d, Y H:i" }}</h4>
+                            <p>
+                                <span class="status-badge">{{ backup.get_status_display }}</span>
+                                <span class="entries-count">{{ backup.entries_count }} entries</span>
+                                <span class="size">{{ backup.file_size|filesizeformat }}</span>
+                            </p>
+                        </div>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="backup_id" value="{{ backup.id }}">
+                            {% if backup.status == 'completed' %}
+                            <button type="submit" name="action" value="restore" class="btn btn-sm btn-success" onclick="return confirm('Restore this backup? This will overwrite current data.')">Restore</button>
+                            {% endif %}
+                            <button type="button" class="btn btn-sm">Download</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-database"></i>
+                <p>No backups yet. Create your first backup now!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.backup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .backup-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.backup-controls, .backup-history {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #36454F;
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.backup-buttons {
+    margin: 1.5rem 0;
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    width: 100%;
+}
+
+.backup-settings {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #36454F;
+}
+
+.setting-item {
+    margin: 1.5rem 0;
+}
+
+.setting-item label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.setting-item p {
+    margin: 0.5rem 0 0 1.8rem;
+    font-size: 0.9rem;
+    color: #8892aa;
+}
+
+.backups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.backup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(87, 193, 255, 0.1);
+    border: 1px solid #57c1ff;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.backup-item.backup-completed {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+}
+
+.backup-item.backup-in_progress {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: #fbbf24;
+    animation: pulse-glow 2s infinite;
+}
+
+.backup-item.backup-failed {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+}
+
+.backup-info h4 {
+    margin: 0 0 0.5rem 0;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    background: #57c1ff;
+    color: #0a1830;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.entries-count, .size {
+    margin-left: 1rem;
+    color: #d5dce7;
+    font-size: 0.9rem;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+}
+</style>
+{% endblock %}

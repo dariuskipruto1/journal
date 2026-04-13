@@ -1,0 +1,633 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>My Journal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <header class="topbar hero-header">
+            <div class="header-left">
+                <img src="{% static 'journal/images/your-photo.jpeg' %}" alt="Your profile photo" class="header-profile-photo">
+            </div>
+            <div class="header-center">
+                <h1><i class="fa-solid fa-book-open icon"></i>My Journal</h1>
+                <p class="header-live-line">
+                    <span id="headerClock" class="header-clock">Loading time...</span>
+                    <span class="live-divider">|</span>
+                    <span id="headerWeatherText" class="header-weather-text">Loading weather...</span>
+                </p>
+                <p class="header-auto-note">
+                    Automatic weather and time updates for <strong id="headerWeatherLocationLabel">{{ weather_location_default }}</strong>.
+                </p>
+            </div>
+            <div class="topbar-actions">
+                <a class="button-link" href="{% url 'entry_export_csv' %}?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&priority={{ priority_filter|urlencode }}&sort={{ sort_filter|urlencode }}">
+                    <i class="fa-solid fa-file-export icon"></i>Export CSV
+                </a>
+                <form method="post" action="{% url 'logout' %}" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit" class="button-link logout-button">
+                        <i class="fa-solid fa-right-from-bracket icon"></i>Logout
+                    </button>
+                </form>
+            </div>
+        </header>
+        <p class="welcome-line">Welcome back, {{ user.username }}. Keep building your momentum.</p>
+
+        {% if messages %}
+            <section class="messages" aria-live="polite">
+                {% for message in messages %}
+                    <p class="message {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <span class="stat-label">Entries</span>
+                <strong>{{ stats.total_entries }}</strong>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Starred</span>
+                <strong>{{ stats.starred_entries }}</strong>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Tasks</span>
+                <strong>{{ stats.task_entries }}</strong>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Completed</span>
+                <strong>{{ stats.completed_tasks }}</strong>
+            </article>
+            <article class="stat-card overdue">
+                <span class="stat-label">Overdue</span>
+                <strong>{{ stats.overdue_tasks }}</strong>
+            </article>
+        </section>
+
+        {% if overdue_entries_count %}
+            <section class="alert-strip">
+                <h2><i class="fa-solid fa-triangle-exclamation icon"></i>{{ overdue_entries_count }} overdue task{{ overdue_entries_count|pluralize }}</h2>
+                <ul>
+                    {% for overdue_entry in overdue_entries %}
+                        <li>
+                            <a href="{% url 'entry_detail' overdue_entry.pk %}">{{ overdue_entry.title }}</a>
+                            {% if overdue_entry.task_due_at %}
+                                <span>due {{ overdue_entry.task_due_at|date:"M d, Y H:i" }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        <div class="workspace-grid">
+            <section class="main-column">
+                <section>
+                    <h2><i class="fa-solid fa-pen icon"></i>Add New Entry</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit"><i class="fa-solid fa-plus icon"></i>Add Entry</button>
+                    </form>
+                </section>
+
+                <section>
+                    <h2><i class="fa-solid fa-filter icon"></i>Find Entries</h2>
+                    <form method="get" class="filter-form">
+                        <p>
+                            <label for="id_q">Search</label>
+                            <input id="id_q" class="form-control" type="text" name="q" value="{{ query }}" placeholder="Search title, content, or task">
+                        </p>
+                        <p>
+                            <label for="id_status">Status</label>
+                            <select id="id_status" class="form-control" name="status">
+                                <option value="all" {% if status_filter == "all" %}selected{% endif %}>All</option>
+                                <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>Pending</option>
+                                <option value="completed" {% if status_filter == "completed" %}selected{% endif %}>Completed</option>
+                                <option value="overdue" {% if status_filter == "overdue" %}selected{% endif %}>Overdue</option>
+                                <option value="no-task" {% if status_filter == "no-task" %}selected{% endif %}>No Task</option>
+                            </select>
+                        </p>
+                        <p>
+                            <label for="id_priority">Priority</label>
+                            <select id="id_priority" class="form-control" name="priority">
+                                <option value="all" {% if priority_filter == "all" %}selected{% endif %}>All</option>
+                                <option value="low" {% if priority_filter == "low" %}selected{% endif %}>Low</option>
+                                <option value="medium" {% if priority_filter == "medium" %}selected{% endif %}>Medium</option>
+                                <option value="high" {% if priority_filter == "high" %}selected{% endif %}>High</option>
+                            </select>
+                        </p>
+                        <p>
+                            <label for="id_sort">Sort</label>
+                            <select id="id_sort" class="form-control" name="sort">
+                                <option value="newest" {% if sort_filter == "newest" %}selected{% endif %}>Newest first</option>
+                                <option value="oldest" {% if sort_filter == "oldest" %}selected{% endif %}>Oldest first</option>
+                                <option value="updated" {% if sort_filter == "updated" %}selected{% endif %}>Recently updated</option>
+                                <option value="due_soon" {% if sort_filter == "due_soon" %}selected{% endif %}>Due soon</option>
+                            </select>
+                        </p>
+                        <button type="submit"><i class="fa-solid fa-magnifying-glass icon"></i>Apply</button>
+                    </form>
+                </section>
+
+                <section>
+                    <h2><i class="fa-solid fa-list icon"></i>Entries</h2>
+                    {% for entry in entries %}
+                        <article class="entry-card {% if entry.is_overdue %}entry-card-overdue{% endif %}">
+                            <div class="entry-header-row">
+                                <h3><a href="{% url 'entry_detail' entry.pk %}">{{ entry.title }}</a></h3>
+                                <form method="post" action="{% url 'entry_toggle_star' entry.pk %}" class="inline-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button type="submit" class="star-toggle" title="Toggle favorite">
+                                        {% if entry.is_starred %}
+                                            <i class="fa-solid fa-star"></i>
+                                        {% else %}
+                                            <i class="fa-regular fa-star"></i>
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </div>
+
+                            {% if entry.task %}
+                                <p><i class="fa-solid fa-tasks icon"></i><strong>Task:</strong> {{ entry.task }}</p>
+                                <p>
+                                    <strong>Status:</strong>
+                                    {% if entry.task_completed %}
+                                        Completed
+                                    {% elif entry.is_overdue %}
+                                        Overdue
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                    |
+                                    <strong>Priority:</strong> {{ entry.task_priority_label }}
+                                    {% if entry.task_due_at %}
+                                        | <strong>Due:</strong> {{ entry.task_due_at|date:"M d, Y H:i" }}
+                                    {% endif %}
+                                </p>
+                                <form method="post" action="{% url 'entry_toggle_task' entry.pk %}" class="inline-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button type="submit">
+                                        {% if entry.task_completed %}
+                                            <i class="fa-solid fa-rotate-left icon"></i>Mark Incomplete
+                                        {% else %}
+                                            <i class="fa-solid fa-check icon"></i>Mark Complete
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <p>{{ entry.content|truncatewords:50 }}</p>
+                            <p class="entry-meta">
+                                Created: {{ entry.date_created|date:"M d, Y H:i" }} |
+                                Updated: {{ entry.date_updated|date:"M d, Y H:i" }}
+                            </p>
+                            <p>
+                                <a href="{% url 'entry_detail' entry.pk %}"><i class="fa-solid fa-eye icon"></i>View</a> |
+                                <a href="{% url 'entry_edit' entry.pk %}"><i class="fa-solid fa-edit icon"></i>Edit</a> |
+                                <a href="{% url 'entry_delete' entry.pk %}"><i class="fa-solid fa-trash icon"></i>Delete</a>
+                            </p>
+                        </article>
+                    {% empty %}
+                        <p>No entries yet. Add your first note!</p>
+                    {% endfor %}
+                </section>
+            </section>
+
+            <aside class="chat-panel" id="chatPanel">
+                <button id="chatLauncher" class="chat-launcher" type="button" aria-expanded="false" aria-controls="chatWidget">
+                    <span class="launcher-badge">
+                        <i class="fa-solid fa-comments"></i>
+                    </span>
+                    <span class="launcher-label">Assistant</span>
+                    <img src="{% static 'journal/images/your-photo.jpeg' %}" alt="Your profile photo" class="launcher-avatar">
+                </button>
+
+                <section id="chatWidget" class="chat-widget" hidden>
+                    <header class="chat-widget-header">
+                        <div class="assistant-identity">
+                            <img src="{% static 'journal/images/your-photo.jpeg' %}" alt="Your profile photo" class="assistant-avatar">
+                            <div class="assistant-identity-text">
+                                <strong>AI Assistant</strong>
+                                <span class="assistant-presence">
+                                    <i class="fa-solid fa-circle"></i>online
+                                </span>
+                            </div>
+                        </div>
+                        <button id="chatCloseButton" class="widget-close-btn" type="button" aria-label="Minimize chat">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                    </header>
+
+                    <p class="chat-subtitle">Connected to Ollama model: <strong id="chatModelLabel">{{ ollama_model }}</strong></p>
+                    <p id="chatModelStatus" class="chat-model-status" aria-live="polite"></p>
+                    <div class="chat-actions">
+                        <button type="button" class="chat-action-btn" data-prompt="Give me practical recommendations from my journal and tasks.">
+                            <i class="fa-solid fa-lightbulb icon"></i>Recommendations
+                        </button>
+                        <button type="button" class="chat-action-btn" data-prompt="Give me a real-time summary of what I should focus on now.">
+                            <i class="fa-solid fa-clock icon"></i>Real-time Summary
+                        </button>
+                        <button type="button" class="chat-action-btn" data-prompt="What is the weather in Nairobi and how should I plan my day?">
+                            <i class="fa-solid fa-cloud icon"></i>Weather Plan
+                        </button>
+                    </div>
+                    <div id="chatMessages" class="chat-messages" aria-live="polite">
+                        <div class="chat-message assistant">
+                            <strong>Assistant</strong>
+                            <p>Hi! Ask me for recommendations, real-time priorities, or weather-aware planning.</p>
+                        </div>
+                    </div>
+                    <form id="chatForm" class="chat-form">
+                        <label for="chatPrompt">Message</label>
+                        <div class="chat-form-row">
+                            <textarea id="chatPrompt" class="form-control" rows="3" placeholder="Type your message..."></textarea>
+                            <div class="chat-form-actions">
+                                <button id="chatVoiceButton" class="chat-voice-btn" type="button" aria-label="Start voice input">
+                                    <i class="fa-solid fa-microphone"></i>
+                                </button>
+                                <button id="chatSendButton" type="submit" aria-label="Send message">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <p id="chatStatus" class="chat-status" role="status"></p>
+                </section>
+            </aside>
+        </div>
+        <footer class="site-footer">By Darius Kipruto</footer>
+    </div>
+
+    <script>
+        (() => {
+            const chatPanel = document.getElementById("chatPanel");
+            const chatLauncher = document.getElementById("chatLauncher");
+            const chatWidget = document.getElementById("chatWidget");
+            const chatCloseButton = document.getElementById("chatCloseButton");
+            const headerClock = document.getElementById("headerClock");
+            const headerWeatherText = document.getElementById("headerWeatherText");
+            const headerWeatherLocationLabel = document.getElementById("headerWeatherLocationLabel");
+            const chatForm = document.getElementById("chatForm");
+            const chatPrompt = document.getElementById("chatPrompt");
+            const chatMessages = document.getElementById("chatMessages");
+            const chatStatus = document.getElementById("chatStatus");
+            const chatModelLabel = document.getElementById("chatModelLabel");
+            const chatModelStatus = document.getElementById("chatModelStatus");
+            const chatSendButton = document.getElementById("chatSendButton");
+            const chatVoiceButton = document.getElementById("chatVoiceButton");
+            const chatActionButtons = document.querySelectorAll(".chat-action-btn");
+            const endpoint = "{% url 'ollama_chat' %}";
+            const liveEndpoint = "{% url 'assistant_realtime' %}";
+            const defaultWeatherLocation = (headerWeatherLocationLabel?.textContent || "Nairobi").trim();
+            const chatHistory = [];
+            const locationState = {
+                label: defaultWeatherLocation,
+                latitude: null,
+                longitude: null,
+            };
+            const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const supportsSpeechSynthesis = "speechSynthesis" in window;
+            let speechRecognition = null;
+            let isListening = false;
+
+            const setWidgetOpen = (shouldOpen) => {
+                if (shouldOpen) {
+                    chatWidget.hidden = false;
+                    chatPanel.classList.add("is-open");
+                    chatLauncher.setAttribute("aria-expanded", "true");
+                } else {
+                    chatWidget.hidden = true;
+                    chatPanel.classList.remove("is-open");
+                    chatLauncher.setAttribute("aria-expanded", "false");
+                }
+            };
+
+            const setLocationLabel = (locationLabel) => {
+                const normalized = (locationLabel || "").trim() || defaultWeatherLocation;
+                locationState.label = normalized;
+                if (headerWeatherLocationLabel) {
+                    headerWeatherLocationLabel.textContent = normalized;
+                }
+            };
+
+            const getCookie = (name) => {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) {
+                    return parts.pop().split(";").shift();
+                }
+                return "";
+            };
+
+            const hasCoordinates = () => Number.isFinite(locationState.latitude) && Number.isFinite(locationState.longitude);
+
+            const buildRealtimeQuery = () => {
+                const params = new URLSearchParams();
+                if (hasCoordinates()) {
+                    params.set("lat", locationState.latitude.toFixed(6));
+                    params.set("lon", locationState.longitude.toFixed(6));
+                } else if (locationState.label) {
+                    params.set("location", locationState.label);
+                }
+                const query = params.toString();
+                return query ? `?${query}` : "";
+            };
+
+            const buildChatPayload = (prompt) => {
+                const payload = {
+                    prompt,
+                    history: chatHistory.slice(-12),
+                    weather_location: locationState.label || defaultWeatherLocation,
+                };
+                if (hasCoordinates()) {
+                    payload.lat = locationState.latitude;
+                    payload.lon = locationState.longitude;
+                }
+                return payload;
+            };
+
+            const appendMessage = (role, text) => {
+                const wrapper = document.createElement("div");
+                wrapper.className = `chat-message ${role}`;
+
+                const author = document.createElement("strong");
+                author.textContent = role === "user" ? "You" : "Assistant";
+
+                const body = document.createElement("p");
+                body.textContent = text;
+
+                wrapper.appendChild(author);
+                wrapper.appendChild(body);
+                chatMessages.appendChild(wrapper);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            const formatWeather = (weather) => {
+                if (!weather) {
+                    return "Weather data is not available.";
+                }
+                return `${weather.location}: ${weather.weather}, ${weather.temperature_c}°C (feels like ${weather.feels_like_c}°C), wind ${weather.wind_kph} km/h.`;
+            };
+
+            const setRealtimeClock = (value) => {
+                if (!value) {
+                    return;
+                }
+                headerClock.textContent = value;
+            };
+
+            const tickLocalClock = () => {
+                const now = new Date();
+                headerClock.textContent = now.toLocaleString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                });
+            };
+
+            const speakAssistantReply = (text) => {
+                if (!supportsSpeechSynthesis || !text) {
+                    return;
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = navigator.language || "en-US";
+                utterance.rate = 1;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            };
+
+            const syncDeviceLocation = async () => {
+                if (!("geolocation" in navigator)) {
+                    return false;
+                }
+                return new Promise((resolve) => {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            locationState.latitude = position.coords.latitude;
+                            locationState.longitude = position.coords.longitude;
+                            resolve(true);
+                        },
+                        () => {
+                            resolve(false);
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 300000,
+                        },
+                    );
+                });
+            };
+
+            const fetchLiveData = async () => {
+                const query = buildRealtimeQuery();
+                headerWeatherText.textContent = "Fetching weather...";
+
+                try {
+                    const response = await fetch(`${liveEndpoint}${query}`);
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || "Unable to fetch live data.");
+                    }
+
+                    if (data.realtime && data.realtime.local_datetime) {
+                        setRealtimeClock(data.realtime.local_datetime);
+                    }
+
+                    if (data.weather_error) {
+                        headerWeatherText.textContent = data.weather_error;
+                    } else if (data.weather) {
+                        headerWeatherText.textContent = formatWeather(data.weather);
+                        if (data.weather.location) {
+                            setLocationLabel(data.weather.location);
+                        }
+                    }
+                } catch (error) {
+                    headerWeatherText.textContent = error.message;
+                }
+            };
+
+            const sendPrompt = async (prompt) => {
+                if (!prompt) {
+                    chatStatus.textContent = "Write a message before sending.";
+                    return;
+                }
+
+                appendMessage("user", prompt);
+                chatPrompt.value = "";
+                chatStatus.textContent = "Thinking...";
+                chatSendButton.disabled = true;
+                setWidgetOpen(true);
+
+                try {
+                    const response = await fetch(endpoint, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": getCookie("csrftoken"),
+                        },
+                        body: JSON.stringify(buildChatPayload(prompt)),
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || "Unable to get a response.");
+                    }
+
+                    appendMessage("assistant", data.reply);
+                    speakAssistantReply(data.reply);
+                    chatHistory.push({ role: "user", content: prompt });
+                    chatHistory.push({ role: "assistant", content: data.reply });
+                    if (chatHistory.length > 24) {
+                        chatHistory.splice(0, chatHistory.length - 24);
+                    }
+                    if (data.realtime && data.realtime.local_datetime) {
+                        setRealtimeClock(data.realtime.local_datetime);
+                    }
+                    if (data.model) {
+                        chatModelLabel.textContent = data.model;
+                    }
+                    chatModelStatus.textContent = data.model_notice || "";
+                    if (data.weather_error) {
+                        headerWeatherText.textContent = data.weather_error;
+                    } else if (data.weather) {
+                        headerWeatherText.textContent = formatWeather(data.weather);
+                        if (data.weather.location) {
+                            setLocationLabel(data.weather.location);
+                        }
+                    }
+                    chatStatus.textContent = "";
+                } catch (error) {
+                    chatStatus.textContent = error.message;
+                } finally {
+                    chatSendButton.disabled = false;
+                    chatPrompt.focus();
+                }
+            };
+
+            const setListeningState = (listening) => {
+                isListening = listening;
+                if (!chatVoiceButton) {
+                    return;
+                }
+                chatVoiceButton.classList.toggle("is-listening", listening);
+                chatVoiceButton.setAttribute(
+                    "aria-label",
+                    listening ? "Stop voice input" : "Start voice input",
+                );
+            };
+
+            const initializeVoiceInput = () => {
+                if (!chatVoiceButton) {
+                    return;
+                }
+                if (!SpeechRecognitionApi) {
+                    chatVoiceButton.hidden = true;
+                    return;
+                }
+
+                speechRecognition = new SpeechRecognitionApi();
+                speechRecognition.lang = navigator.language || "en-US";
+                speechRecognition.interimResults = false;
+                speechRecognition.maxAlternatives = 1;
+                speechRecognition.continuous = false;
+
+                speechRecognition.onstart = () => {
+                    setListeningState(true);
+                    chatStatus.textContent = "Listening...";
+                };
+                speechRecognition.onend = () => {
+                    setListeningState(false);
+                    if (chatStatus.textContent === "Listening...") {
+                        chatStatus.textContent = "";
+                    }
+                };
+                speechRecognition.onerror = () => {
+                    setListeningState(false);
+                    chatStatus.textContent = "Voice input is unavailable right now.";
+                };
+                speechRecognition.onresult = (event) => {
+                    const transcript = event.results?.[0]?.[0]?.transcript || "";
+                    if (!transcript) {
+                        return;
+                    }
+                    const separator = chatPrompt.value.trim() ? " " : "";
+                    chatPrompt.value = `${chatPrompt.value}${separator}${transcript}`.trim();
+                    chatPrompt.focus();
+                };
+
+                chatVoiceButton.addEventListener("click", () => {
+                    if (!speechRecognition) {
+                        return;
+                    }
+                    if (isListening) {
+                        speechRecognition.stop();
+                    } else {
+                        speechRecognition.start();
+                    }
+                });
+            };
+
+            chatForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const prompt = chatPrompt.value.trim();
+                await sendPrompt(prompt);
+            });
+
+            chatLauncher.addEventListener("click", () => {
+                const isOpen = chatPanel.classList.contains("is-open");
+                setWidgetOpen(!isOpen);
+                if (!isOpen) {
+                    chatPrompt.focus();
+                }
+            });
+
+            chatCloseButton.addEventListener("click", () => {
+                setWidgetOpen(false);
+            });
+
+            chatActionButtons.forEach((button) => {
+                button.addEventListener("click", async () => {
+                    const prompt = button.dataset.prompt || "";
+                    chatPrompt.value = prompt;
+                    await sendPrompt(prompt);
+                });
+            });
+
+            const initializeDashboardAssist = async () => {
+                setLocationLabel(defaultWeatherLocation);
+                setWidgetOpen(false);
+                initializeVoiceInput();
+
+                tickLocalClock();
+                setInterval(tickLocalClock, 1000);
+
+                await syncDeviceLocation();
+                await fetchLiveData();
+
+                setInterval(() => {
+                    fetchLiveData();
+                }, 300000);
+                setInterval(() => {
+                    syncDeviceLocation();
+                }, 900000);
+            };
+
+            initializeDashboardAssist();
+        })();
+    </script>
+</body>
+</html>

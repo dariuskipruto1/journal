@@ -1,0 +1,391 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Search Entries - Journal Desk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'journal/css/style.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'journal/favicon.svg' %}">
+</head>
+<body>
+    <div class="page-container">
+        <!-- Smart Navigation Header -->
+        <header class="smart-nav">
+            <div class="nav-brand">
+                <a href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-book-open nav-icon"></i>
+                    <span class="nav-title">Journal Desk</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="{% url 'dashboard' %}" class="nav-item">
+                    <i class="fa-solid fa-gauge nav-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'entry_list' %}" class="nav-item">
+                    <i class="fa-solid fa-file-alt nav-icon"></i>
+                    <span>Entries</span>
+                </a>
+                <a href="{% url 'task_list' %}" class="nav-item">
+                    <i class="fa-solid fa-tasks nav-icon"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="{% url 'analytics' %}" class="nav-item">
+                    <i class="fa-solid fa-chart-line nav-icon"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="{% url 'entry_search' %}" class="nav-item active">
+                    <i class="fa-solid fa-search nav-icon"></i>
+                    <span>Search</span>
+                </a>
+            </nav>
+
+            <div class="nav-actions">
+                <div class="user-menu">
+                    <button class="user-menu-btn">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span>{{ user.username }}</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-menu-dropdown">
+                        <a href="{% url 'profile' %}">
+                            <i class="fa-solid fa-user"></i> Profile
+                        </a>
+                        <a href="{% url 'help_page' %}">
+                            <i class="fa-solid fa-question-circle"></i> Help
+                        </a>
+                        <hr>
+                        <form method="post" action="{% url 'logout' %}" class="inline-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">
+                                <i class="fa-solid fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="header-content">
+                <h1><i class="fa-solid fa-search"></i> Search Entries</h1>
+                <p>Find specific entries across your journal</p>
+            </div>
+        </section>
+
+        {% if messages %}
+            <section class="messages" aria-live="polite">
+                {% for message in messages %}
+                    <p class="message {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <!-- Search Form -->
+        <section class="search-form-section">
+            <div class="search-form-container">
+                <form method="get" action="{% url 'entry_search' %}" class="advanced-search-form">
+                    <div class="search-input-group">
+                        <div class="search-input-wrapper">
+                            <i class="fa-solid fa-search search-icon"></i>
+                            <input type="text" name="q" value="{{ query }}" placeholder="Search entries..." class="search-input" autofocus>
+                        </div>
+                        <button type="submit" class="btn btn-primary search-btn">
+                            <i class="fa-solid fa-search"></i> Search
+                        </button>
+                    </div>
+
+                    <div class="search-filters">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-calendar"></i> Date Range:</label>
+                                <div class="date-inputs">
+                                    <input type="date" name="date_from" value="{{ date_from }}" placeholder="From">
+                                    <span>to</span>
+                                    <input type="date" name="date_to" value="{{ date_to }}" placeholder="To">
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-star"></i> Starred:</label>
+                                <select name="starred">
+                                    <option value="">All entries</option>
+                                    <option value="yes" {% if starred == 'yes' %}selected{% endif %}>Starred only</option>
+                                    <option value="no" {% if starred == 'no' %}selected{% endif %}>Not starred</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-tasks"></i> Has Tasks:</label>
+                                <select name="has_tasks">
+                                    <option value="">All entries</option>
+                                    <option value="yes" {% if has_tasks == 'yes' %}selected{% endif %}>With tasks</option>
+                                    <option value="no" {% if has_tasks == 'no' %}selected{% endif %}>Without tasks</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-sort"></i> Sort by:</label>
+                                <select name="sort">
+                                    <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>Relevance</option>
+                                    <option value="date_desc" {% if sort == 'date_desc' %}selected{% endif %}>Newest first</option>
+                                    <option value="date_asc" {% if sort == 'date_asc' %}selected{% endif %}>Oldest first</option>
+                                    <option value="title" {% if sort == 'title' %}selected{% endif %}>Title</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-list"></i> Results per page:</label>
+                                <select name="per_page">
+                                    <option value="10" {% if per_page == '10' %}selected{% endif %}>10</option>
+                                    <option value="25" {% if per_page == '25' %}selected{% endif %}>25</option>
+                                    <option value="50" {% if per_page == '50' %}selected{% endif %}>50</option>
+                                    <option value="100" {% if per_page == '100' %}selected{% endif %}>100</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="search-actions">
+                        <a href="{% url 'entry_search' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-times"></i> Clear Filters
+                        </a>
+                        {% if query or date_from or date_to or starred or has_tasks %}
+                            <div class="active-filters">
+                                <span class="filters-label">Active filters:</span>
+                                {% if query %}<span class="filter-tag">Query: "{{ query }}"</span>{% endif %}
+                                {% if date_from or date_to %}
+                                    <span class="filter-tag">Date: {{ date_from|default:"..." }} to {{ date_to|default:"..." }}</span>
+                                {% endif %}
+                                {% if starred %}<span class="filter-tag">Starred: {{ starred }}</span>{% endif %}
+                                {% if has_tasks %}<span class="filter-tag">Tasks: {{ has_tasks }}</span>{% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Search Results -->
+        <section class="search-results-section">
+            {% if query or date_from or date_to or starred or has_tasks %}
+                <div class="results-header">
+                    <h2>Search Results</h2>
+                    <p class="results-count">
+                        {% if results %}
+                            Found {{ results|length }} entr{{ results|pluralize:"y,ies" }}
+                            {% if page_obj.has_other_pages %}
+                                (showing {{ page_obj.start_index }}-{{ page_obj.end_index }})
+                            {% endif %}
+                        {% else %}
+                            No entries found matching your criteria.
+                        {% endif %}
+                    </p>
+                </div>
+
+                {% if results %}
+                    <div class="search-results">
+                        {% for entry in results %}
+                            <div class="search-result-item">
+                                <div class="result-header">
+                                    <h3>
+                                        <a href="{% url 'entry_detail' entry.pk %}">{{ entry.title }}</a>
+                                        {% if entry.is_starred %}
+                                            <i class="fa-solid fa-star starred-icon" title="Starred entry"></i>
+                                        {% endif %}
+                                    </h3>
+                                    <span class="result-date">{{ entry.date_created|date:"M j, Y g:i A" }}</span>
+                                </div>
+
+                                {% if entry.content %}
+                                    <div class="result-content">
+                                        {% if query %}
+                                            {{ entry.content|truncatewords:50|highlight:query }}
+                                        {% else %}
+                                            {{ entry.content|truncatewords:50 }}
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
+                                <div class="result-meta">
+                                    {% if entry.task %}
+                                        <span class="result-task">
+                                            <i class="fa-solid fa-tasks"></i>
+                                            Task: {{ entry.task|truncatewords:10 }}
+                                            {% if entry.task_completed %}
+                                                <span class="task-completed">(Completed)</span>
+                                            {% else %}
+                                                <span class="task-pending">(Pending)</span>
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+
+                                    {% if entry.task_due_at %}
+                                        <span class="result-due-date {% if entry.is_overdue %}overdue{% endif %}">
+                                            <i class="fa-solid fa-clock"></i>
+                                            Due: {{ entry.task_due_at|date:"M j, g:i A" }}
+                                            {% if entry.is_overdue %}
+                                                <span class="overdue-badge">OVERDUE</span>
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+
+                                    <span class="result-word-count">
+                                        <i class="fa-solid fa-file-alt"></i>
+                                        {{ entry.word_count }} word{{ entry.word_count|pluralize }}
+                                    </span>
+                                </div>
+
+                                <div class="result-actions">
+                                    <a href="{% url 'entry_detail' entry.pk %}" class="result-action-btn">
+                                        <i class="fa-solid fa-eye"></i> View
+                                    </a>
+                                    <a href="{% url 'entry_edit' entry.pk %}" class="result-action-btn">
+                                        <i class="fa-solid fa-edit"></i> Edit
+                                    </a>
+                                    {% if entry.task %}
+                                        <form method="post" action="{% url 'entry_toggle_task' entry.pk %}" class="inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <button type="submit" class="result-action-btn task-toggle-btn {% if entry.task_completed %}completed{% endif %}">
+                                                {% if entry.task_completed %}
+                                                    <i class="fa-solid fa-check-circle"></i> Mark Pending
+                                                {% else %}
+                                                    <i class="fa-solid fa-circle"></i> Mark Complete
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <div class="pagination">
+                            <span class="step-links">
+                                {% if page_obj.has_previous %}
+                                    <a href="?{% querystring_for_page page_obj.previous_page_number %}" class="page-link">
+                                        <i class="fa-solid fa-chevron-left"></i> Previous
+                                    </a>
+                                {% endif %}
+
+                                <span class="current-page">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+
+                                {% if page_obj.has_next %}
+                                    <a href="?{% querystring_for_page page_obj.next_page_number %}" class="page-link">
+                                        Next <i class="fa-solid fa-chevron-right"></i>
+                                    </a>
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fa-solid fa-search"></i>
+                        <h3>No results found</h3>
+                        <p>Try adjusting your search terms or filters.</p>
+                        <a href="{% url 'entry_search' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-times"></i> Clear Search
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-search"></i>
+                    <h3>Search your journal</h3>
+                    <p>Use the search form above to find specific entries, or browse all entries.</p>
+                    <a href="{% url 'entry_list' %}" class="btn btn-primary">
+                        <i class="fa-solid fa-list"></i> Browse All Entries
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+
+        <!-- Search Tips -->
+        <section class="search-tips">
+            <h3><i class="fa-solid fa-lightbulb"></i> Search Tips</h3>
+            <div class="tips-grid">
+                <div class="tip-item">
+                    <i class="fa-solid fa-quote-left"></i>
+                    <p>Use quotes for exact phrases: "morning routine"</p>
+                </div>
+                <div class="tip-item">
+                    <i class="fa-solid fa-calendar"></i>
+                    <p>Narrow results with date ranges</p>
+                </div>
+                <div class="tip-item">
+                    <i class="fa-solid fa-star"></i>
+                    <p>Filter for starred entries only</p>
+                </div>
+                <div class="tip-item">
+                    <i class="fa-solid fa-tasks"></i>
+                    <p>Find entries with or without tasks</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Auto-submit search on filter changes
+        document.querySelectorAll('select[name]').forEach(select => {
+            select.addEventListener('change', function() {
+                this.form.submit();
+            });
+        });
+
+        // Clear date inputs
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.value === '') {
+                    this.form.submit();
+                }
+            });
+        });
+
+        // Highlight search terms in results
+        function highlightSearchTerms() {
+            const query = "{{ query }}";
+            if (!query) return;
+
+            const terms = query.toLowerCase().split(' ').filter(term => term.length > 0);
+            const resultContents = document.querySelectorAll('.result-content');
+
+            resultContents.forEach(content => {
+                let html = content.innerHTML;
+                terms.forEach(term => {
+                    const regex = new RegExp(`(${term})`, 'gi');
+                    html = html.replace(regex, '<mark>$1</mark>');
+                });
+                content.innerHTML = html;
+            });
+        }
+
+        // Run highlighting on page load
+        document.addEventListener('DOMContentLoaded', highlightSearchTerms);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('.search-input').focus();
+            }
+
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                window.location.href = "{% url 'entry_search' %}";
+            }
+        });
+    </script>
+</body>
+</html>

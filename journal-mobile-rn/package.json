@@ -1,0 +1,51 @@
+{
+  "name": "journal-desk-mobile",
+  "version": "1.0.0",
+  "description": "Journal Desk - Your Personal Digital Journal (React Native)",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build": "eas build",
+    "build-android": "eas build --platform android",
+    "build-ios": "eas build --platform ios",
+    "eject": "expo eject"
+  },
+  "dependencies": {
+    "expo": "~50.0.0",
+    "expo-av": "^13.10.0",
+    "expo-camera": "^13.4.0",
+    "expo-document-picker": "^11.5.0",
+    "expo-file-system": "~15.4.0",
+    "expo-image-picker": "^14.5.0",
+    "expo-linear-gradient": "~12.3.0",
+    "expo-local-authentication": "~13.4.0",
+    "expo-sharing": "~11.5.0",
+    "expo-web-browser": "~12.3.0",
+    "react": "18.2.0",
+    "react-native": "0.73.0",
+    "react-native-calendars": "^1.604.0",
+    "react-native-chart-kit": "^6.12.0",
+    "react-native-gesture-handler": "~2.14.0",
+    "react-native-reanimated": "~3.6.0",
+    "react-native-screens": "~3.27.0",
+    "react-native-svg": "13.14.0",
+    "react-navigation": "5.18.0",
+    "react-navigation-bottom-tabs": "5.11.16",
+    "react-navigation-drawer": "5.12.8",
+    "react-navigation-stack": "5.14.5",
+    "axios": "^1.6.0",
+    "async-storage": "@react-native-async-storage/async-storage",
+    "moment": "^2.29.4",
+    "react-native-paper": "^5.1.0",
+    "react-native-vector-icons": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.73.0",
+    "babel-preset-expo": "~9.5.0"
+  },
+  "private": true
+}
