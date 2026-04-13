@@ -176,7 +176,7 @@ def send_deployment_email(recipient_email, deployment_type="Railway"):
     print(f"Subject: {msg['Subject']}")
     print("=" * 70)
     print("\n[HTML Email Content - Formatted for browser]\n")
-    print(msg.get_payload(0).get_payload(decode=True).decode('utf-8')[:500] + "...")
+    print(html_content[:500] + "...")
     print("\n" + "=" * 70)
     print("✅ Email content generated successfully!")
     print("=" * 70)
