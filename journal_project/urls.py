@@ -3,6 +3,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from journal.api import (
@@ -36,7 +38,17 @@ router.register(r"api/analytics", AdvancedAnalyticsViewSet, basename="api_analyt
 router.register(r"api/email-logs", EmailLogViewSet, basename="api_email_log")
 router.register(r"api/social-shares", SocialShareViewSet, basename="api_social_share")
 
+@require_http_methods(["GET"])
+def health_check(request):
+    """Health check endpoint for deployment monitoring"""
+    return JsonResponse({
+        "status": "healthy",
+        "version": "1.0.0",
+        "database": "connected"
+    })
+
 urlpatterns = [
+    path("health/", health_check, name="health_check"),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path("", include("journal.urls")),
